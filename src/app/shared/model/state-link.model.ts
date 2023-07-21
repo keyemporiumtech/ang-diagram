@@ -1,8 +1,11 @@
 import * as go from 'gojs';
 
 export interface StateLinkModel {
+  key?: string | number;
   from?: string | number;
   to?: string | number;
+  fromSpot?: go.Spot;
+  toSpot?: go.Spot;
   curve?:
     | typeof go.Link.Bezier
     | typeof go.Link.JumpGap

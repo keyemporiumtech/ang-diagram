@@ -1,7 +1,7 @@
 import { ObjStateModel } from './obj-state.model';
 import * as go from 'gojs';
 export class ObjDiagramModel {
-  state: ObjStateModel | any;
+  state: ObjStateModel = {};
   diagram?: () => go.Diagram;
   title: string = '';
   flgInspector: boolean = false;

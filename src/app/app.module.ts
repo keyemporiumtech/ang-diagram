@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
 import { SharedModule } from './shared/shared.module';
+import { InfrastructureModule } from './infrastructure/infrastructure.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -13,7 +14,8 @@ import { SharedModule } from './shared/shared.module';
     AppRoutingModule,
     FormsModule,
     GojsAngularModule,
-    SharedModule,
+    SharedModule.forRoot(),
+    InfrastructureModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent],

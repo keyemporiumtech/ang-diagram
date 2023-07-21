@@ -27,8 +27,23 @@ export class DiagramBuilder {
     return new go.Node(type).bind('location', 'position', go.Point.parse);
   }
 
-  static makeShape(): go.Shape {
-    return new go.Shape()
+  static makeGroup(type: 'Auto' | 'Vertical' | 'Horizontal' | undefined) {
+    return new go.Group(type)
+      .add(
+        new go.Panel('Auto')
+          .add(this.makeShape({ parameter1: 14 }))
+          .add(new go.Placeholder({ padding: 25 }))
+      )
+      .add(
+        this.makeText({
+          font: 'Bold 12pt Sans-Serif',
+          margin: new go.Margin(5, 5, 5, 5),
+        })
+      );
+  }
+
+  static makeShape(init?: any): go.Shape {
+    return new go.Shape(init)
       .bind('width')
       .bind('height')
       .bind('fill', 'background') // binds the data.color to shape.fill
@@ -40,8 +55,8 @@ export class DiagramBuilder {
       .bind('margin');
   }
 
-  static makeText(): go.TextBlock {
-    return new go.TextBlock()
+  static makeText(init?: any): go.TextBlock {
+    return new go.TextBlock(init ? init : { margin: new go.Margin(5, 5, 5, 5) })
       .bind('font')
       .bind('choices', 'possibleValues')
       .bind('isMultiline', 'multiline')
@@ -53,8 +68,10 @@ export class DiagramBuilder {
       .bind('margin', 'textMargin');
   }
 
-  static makeLink(): go.Link {
-    return new go.Link({ fromSpot: go.Spot.Left, toSpot: go.Spot.Right })
+  static makeLink(init?: any): go.Link {
+    return new go.Link(
+      init ? init : { fromSpot: go.Spot.Left, toSpot: go.Spot.Right }
+    )
       .bind('curve')
       .bind('routing')
       .bind('fromSpot')

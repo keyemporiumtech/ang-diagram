@@ -83,6 +83,9 @@ export class ObjDiagramComponent {
     node.add(DiagramBuilder.makeText());
     diagram.nodeTemplate = node;
 
+    const group = DiagramBuilder.makeGroup(this.nodeOrientation);
+    diagram.groupTemplate = group;
+
     const link = DiagramBuilder.makeLink();
     diagram.linkTemplate = link;
 

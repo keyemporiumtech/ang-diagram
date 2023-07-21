@@ -31,16 +31,6 @@ export class DiagramExampleBuilder {
         { from: 'Gamma', to: 'Delta' },
         { from: 'Delta', to: 'Alpha' },
       ],
-      diagramModelData: { prop: 'value' },
-      skipsDiagramUpdate: false,
-      selectedNodeData: null, // used by InspectorComponent
-
-      // Palette state props
-      paletteNodeData: [
-        { key: 'Epsilon', text: 'Epsilon', color: 'red' },
-        { key: 'Kappa', text: 'Kappa', color: 'purple' },
-      ],
-      paletteModelData: { prop: 'val' },
     };
     return model;
   }
@@ -56,18 +46,38 @@ export class DiagramExampleBuilder {
     model.state = {
       // Diagram state props
       diagramNodeData: [
-        { id: 'client', text: 'Client', color: 'lightgreen', isGroup: true },
-        { id: 'fe', text: 'app', color: 'orange', group: 'client' },
-        { id: 'business', text: 'Business', color: 'lightblue', isGroup: true },
-        { id: 'api', text: 'Api Gateway', color: 'pink', group: 'business' },
-        { id: 'be', text: 'Backend', color: 'orange', group: 'business' },
         {
-          id: 'persistence',
-          text: 'Persistence',
-          color: 'lightgray',
+          key: 'client',
+          text: 'Client',
+          background: 'lightgreen',
           isGroup: true,
         },
-        { id: 'db', text: 'Database', color: 'yellow', group: 'persistence' },
+        { key: 'fe', text: 'app', background: 'orange', group: 'client' },
+        {
+          key: 'business',
+          text: 'Business',
+          background: 'lightblue',
+          isGroup: true,
+        },
+        {
+          key: 'api',
+          text: 'Api Gateway',
+          background: 'pink',
+          group: 'business',
+        },
+        { key: 'be', text: 'Backend', background: 'orange', group: 'business' },
+        {
+          key: 'persistence',
+          text: 'Persistence',
+          background: 'lightgray',
+          isGroup: true,
+        },
+        {
+          key: 'db',
+          text: 'Database',
+          background: 'yellow',
+          group: 'persistence',
+        },
       ],
       diagramLinkData: [
         { key: -1, from: 'client', to: 'business' },
@@ -76,16 +86,6 @@ export class DiagramExampleBuilder {
         { key: -4, from: 'persistence', to: 'business' },
         { key: -5, from: 'be', to: 'api' },
       ],
-      diagramModelData: { prop: 'value' },
-      skipsDiagramUpdate: false,
-      selectedNodeData: null, // used by InspectorComponent
-
-      // Palette state props
-      paletteNodeData: [
-        { key: 'Epsilon', text: 'Epsilon', color: 'red' },
-        { key: 'Kappa', text: 'Kappa', color: 'purple' },
-      ],
-      paletteModelData: { prop: 'val' },
     };
     return model;
   }
@@ -175,7 +175,7 @@ export class DiagramExampleBuilder {
           text: 'app',
           background: 'orange',
           group: 'client',
-          textAlign: 'centered',
+          textAlign: 'center',
           margin: new go.Margin(20, 20, 20, 20),
           textMargin: new go.Margin(20, 20, 20, 20),
         },
