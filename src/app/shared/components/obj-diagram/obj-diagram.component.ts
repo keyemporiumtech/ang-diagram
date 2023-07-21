@@ -33,7 +33,7 @@ export class ObjDiagramComponent {
   @ViewChild('myDiagram', { static: true })
   public myDiagramComponent: DiagramComponent | undefined;
   @ViewChild('myPalette', { static: true })
-  public myPaletteComponent: PaletteComponent | undefined;
+  public myPaletteComponent: PaletteComponent | any;
 
   // Big object that holds app-level state data
   // As of gojs-angular 2.0, immutability is expected and required of state for ease of change detection.
@@ -75,8 +75,9 @@ export class ObjDiagramComponent {
   }
 
   // initialize diagram / templates
-  public initDiagram(): go.Diagram {
+  public initializeDiagram() {
     const diagram = DiagramBuilder.makeDiagram();
+
     const node = DiagramBuilder.makeNode(this.nodeOrientation);
     node.add(DiagramBuilder.makeShape());
     node.add(DiagramBuilder.makeText());
@@ -87,6 +88,7 @@ export class ObjDiagramComponent {
 
     const model = DiagramBuilder.makeModel();
     diagram.model = model;
+
     return diagram;
   }
 
