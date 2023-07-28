@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
 import { SharedModule } from './shared/shared.module';
 import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { DiagramsModule } from './diagrams/diagrams.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -16,6 +17,7 @@ import { InfrastructureModule } from './infrastructure/infrastructure.module';
     GojsAngularModule,
     SharedModule.forRoot(),
     InfrastructureModule.forRoot(),
+    DiagramsModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent],

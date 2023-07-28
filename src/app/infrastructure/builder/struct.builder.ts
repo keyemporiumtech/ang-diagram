@@ -3,8 +3,33 @@ import { EnumFigureType } from '../../shared/enum/figure-type.enum';
 import { StateNodeModel } from '../../shared/model/state-node.model';
 import { ObjDiagramModel } from '../../shared/model/obj-diagram.model';
 import { StateLinkModel } from '../../shared/model/state-link.model';
+import { EnumNodeTemplate } from '../../shared/enum/node-template.enum';
+import { DiagramBuilder } from '../../shared/builder/diagram.builder';
 
 export class StructBuilder {
+  static makeDiagramNodeTemplate(
+    nodeOrientation?: 'Auto' | 'Vertical' | 'Horizontal' | undefined,
+    tp?: EnumNodeTemplate
+  ) {
+    let node;
+    switch (tp) {
+      case EnumNodeTemplate.NORMAL:
+      default:
+        node = DiagramBuilder.makeNode(nodeOrientation);
+        node.add(DiagramBuilder.makeShape());
+        node.add(DiagramBuilder.makeText());
+        break;
+      case EnumNodeTemplate.WITH_IMAGE:
+        node = DiagramBuilder.makeNodePicture(nodeOrientation, { stroke: 2 });
+        // node.add(DiagramBuilder.makeShape());
+        node.add(DiagramBuilder.makePicture());
+        node.add(DiagramBuilder.makeText());
+        // node.add(part);
+        break;
+    }
+    return node;
+  }
+
   static makeDiagramModel(
     title?: string,
     orientation?: 'Auto' | 'Vertical' | 'Horizontal' | undefined,
@@ -179,7 +204,8 @@ export class StructBuilder {
     font?: string,
     type?: string,
     border?: { color: string; size: number; cap?: string; join?: string },
-    position?: string
+    position?: string,
+    img?: { source?: string; width?: number; height?: number }
   ): StateNodeModel {
     const obj: StateNodeModel = {
       key: key,
@@ -188,11 +214,36 @@ export class StructBuilder {
       font: font ? font : 'Times',
       text: text,
     };
-    if (border) {
-      obj.border = border;
+    if (border && border.color) {
+      obj.borderColor = border.color;
     }
+    if (border && border.size) {
+      obj.borderSize = border.size;
+    }
+    if (border && border.cap) {
+      obj.borderCap = border.cap;
+    }
+    if (border && border.join) {
+      obj.borderJoin = border.join;
+    }
+
     if (position) {
       obj.posizion = position;
+    }
+    if (img && img.source) {
+      obj.img = img.source;
+    }
+    if (img && img.width) {
+      obj.imgWidth = img.width;
+    }
+    if (img && img.height) {
+      obj.imgHeight = img.height;
+    }
+
+    if (img && img.width && img.height) {
+      // obj.imgMargin = new go.Margin(-50, -50, -50, -60);
+      // obj.width = img.width + 20;
+      // obj.height = img.height + 20;
     }
     return obj;
   }

@@ -7,7 +7,10 @@ export interface StateNodeModel {
   height?: number;
   background?: string;
   type?: EnumFigureType | string;
-  border?: { color: string; size: number; cap?: string; join?: string };
+  borderColor?: string;
+  borderSize?: number;
+  borderCap?: string;
+  borderJoin?: string;
   posizion?: string; // example 5 20
   margin?: go.Margin;
   // text
@@ -23,4 +26,9 @@ export interface StateNodeModel {
   // group
   isGroup?: boolean;
   group?: string;
+  // image
+  img?: string;
+  imgMargin?: go.Margin;
+  imgWidth?: number;
+  imgHeight?: number;
 }

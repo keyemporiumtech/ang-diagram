@@ -1,0 +1,25 @@
+<h1>{{ title }}</h1>
+<div>
+  <div class="left" [style.width]="diagramWidth" [style.height]="diagramHeight">
+    <gojs-diagram
+      #myDiagram
+      [initDiagram]="initializeDiagram"
+      [divClassName]="diagramDivClassName"
+      [nodeDataArray]="state.diagramNodeData"
+      [linkDataArray]="state.diagramLinkData"
+      [modelData]="state.diagramModelData"
+      [skipsDiagramUpdate]="state.skipsDiagramUpdate"
+      (modelChange)="diagramModelChange($event, this)"
+    >
+    </gojs-diagram>
+  </div>
+  <div class="left" [style.width]="'18%'" [style.height]="'30vh'">
+    Overview
+    <gojs-overview
+      #myOverview
+      [initOverview]="initOverview"
+      [divClassName]="oDivClassName"
+      [observedDiagram]="observedDiagram"
+    ></gojs-overview>
+  </div>
+</div>

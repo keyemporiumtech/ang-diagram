@@ -22,9 +22,19 @@ export class DiagramBuilder {
   }
 
   static makeNode(
-    type: 'Auto' | 'Vertical' | 'Horizontal' | undefined
+    type: 'Auto' | 'Vertical' | 'Horizontal' | undefined,
+    init?: any
   ): go.Node {
-    return new go.Node(type).bind('location', 'position', go.Point.parse);
+    return new go.Node(type, init).bind('location', 'position', go.Point.parse);
+  }
+
+  static makeNodePicture(
+    type: 'Auto' | 'Vertical' | 'Horizontal' | undefined,
+    init?: any
+  ): go.Node {
+    return new go.Node(type, init)
+      .bind('location', 'position', go.Point.parse)
+      .bind('background');
   }
 
   static makeGroup(type: 'Auto' | 'Vertical' | 'Horizontal' | undefined) {
@@ -42,16 +52,23 @@ export class DiagramBuilder {
       );
   }
 
+  static makePart(
+    type: 'Auto' | 'Vertical' | 'Horizontal' | undefined,
+    init?: any
+  ): go.Part {
+    return new go.Part(type, init);
+  }
+
   static makeShape(init?: any): go.Shape {
     return new go.Shape(init)
       .bind('width')
       .bind('height')
       .bind('fill', 'background') // binds the data.color to shape.fill
       .bind('figure', 'type')
-      .bind('stroke', 'border-color')
-      .bind('strokeWidth', 'border-size')
-      .bind('strokeCap', 'border-cap')
-      .bind('strokeJoin', 'border-join')
+      .bind('stroke', 'borderColor')
+      .bind('strokeWidth', 'borderSize')
+      .bind('strokeCap', 'borderCap')
+      .bind('strokeJoin', 'borderJoin')
       .bind('margin');
   }
 
@@ -65,6 +82,7 @@ export class DiagramBuilder {
       .bind('spacingAbove', 'spacing')
       .bind('text')
       .bind('textAlign', 'textAlign')
+      .bind('verticalAlignment')
       .bind('margin', 'textMargin');
   }
 
@@ -92,5 +110,13 @@ export class DiagramBuilder {
           .bind('scale', 'arrowSize')
       )
       .add(new go.TextBlock().bind('text'));
+  }
+
+  static makePicture(init?: any): go.Picture {
+    return new go.Picture(init)
+      .bind('margin', 'imgMargin')
+      .bind('width', 'imgWidth')
+      .bind('height', 'imgHeight')
+      .bind('source', 'img');
   }
 }

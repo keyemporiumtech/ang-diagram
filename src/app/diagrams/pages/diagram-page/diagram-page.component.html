@@ -1,0 +1,15 @@
+<div>
+  <a [routerLink]="['']">Indietro</a>
+  <a
+    [style.float]="'right'"
+    [style.cursor]="'pointer'"
+    (click)="cmpDiagram.download(filename)"
+    >SAVE</a
+  >
+</div>
+
+<app-family-tree
+  *ngIf="pageModel.page === EnumDiagramPage.FAMILY_TREE"
+  #cmpDiagram
+  [state]="data"
+></app-family-tree>

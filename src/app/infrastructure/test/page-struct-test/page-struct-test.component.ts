@@ -1,16 +1,19 @@
 import * as go from 'gojs';
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { ObjDiagramModel } from '../../../shared/model/obj-diagram.model';
 import { StructBuilder } from '../../builder/struct.builder';
 import { StateNodeModel } from '../../../shared/model/state-node.model';
 import { StateLinkModel } from '../../../shared/model/state-link.model';
+import { ObjDiagramComponent } from '../../../shared/components/obj-diagram/obj-diagram.component';
+import { EnumNodeTemplate } from '../../../shared/enum/node-template.enum';
 
 @Component({
   selector: 'app-page-struct-test',
   templateUrl: './page-struct-test.component.html',
   styleUrls: ['./page-struct-test.component.scss'],
 })
-export class PageStructTestComponent {
+export class PageStructTestComponent implements AfterViewInit {
+  @ViewChild('cmpObjDiagram') cmpObjDiagram: ObjDiagramComponent;
   objModel: ObjDiagramModel | undefined;
 
   constructor() {
@@ -30,7 +33,16 @@ export class PageStructTestComponent {
     );
     listData.push(
       StructBuilder.putInGroup(
-        StructBuilder.makeNodeData('fe', 'lightgray', 'Frontend Angular'),
+        StructBuilder.makeNodeData(
+          'fe',
+          'lightgray',
+          'Frontend Angular',
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          { source: 'assets/images/angular.png', width: 50, height: 50 }
+        ),
         'client'
       )
     );
@@ -81,5 +93,19 @@ export class PageStructTestComponent {
     );
 
     this.objModel?.state?.diagramLinkData?.push(...listLink);
+  }
+
+  ngAfterViewInit(): void {
+    if (
+      this.cmpObjDiagram &&
+      this.cmpObjDiagram.myDiagramComponent &&
+      this.cmpObjDiagram.myDiagramComponent.diagram
+    ) {
+      this.cmpObjDiagram.myDiagramComponent.diagram.nodeTemplate =
+        StructBuilder.makeDiagramNodeTemplate(
+          this.cmpObjDiagram.nodeOrientation,
+          EnumNodeTemplate.WITH_IMAGE
+        );
+    }
   }
 }
