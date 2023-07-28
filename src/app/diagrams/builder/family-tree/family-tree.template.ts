@@ -13,6 +13,15 @@ export class FamilyTreeTemplate {
     type?: EnumFigureType
   ) {
     // rewrite defaults
+    if (maleColor) {
+      this.maleColor = maleColor;
+    }
+    if (femaleColor) {
+      this.femaleColor = femaleColor;
+    }
+    if (type) {
+      this.typeShape = type;
+    }
 
     const $ = go.GraphObject.make; // for conciseness in defining templates
 
