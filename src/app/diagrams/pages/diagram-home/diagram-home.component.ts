@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { EnumDiagramPage } from '../../enum/diagram-page.enum';
 import { EnumFamilyTreeData } from '../../builder/family-tree/family-tree-data.enum';
+import { EnumOrgTreeData } from '../../builder/org-tree/org-tree-data.enum';
 
 @Component({
   selector: 'app-diagram-home',
@@ -10,4 +11,5 @@ import { EnumFamilyTreeData } from '../../builder/family-tree/family-tree-data.e
 export class DiagramHomeComponent {
   EnumDiagramPage = EnumDiagramPage;
   EnumFamilyTreeData = EnumFamilyTreeData;
+  EnumOrgTreeData = EnumOrgTreeData;
 }

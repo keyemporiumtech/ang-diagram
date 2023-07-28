@@ -12,4 +12,12 @@
   *ngIf="pageModel.page === EnumDiagramPage.FAMILY_TREE"
   #cmpDiagram
   [state]="data"
+  [title]="title"
 ></app-family-tree>
+
+<app-org-tree
+  *ngIf="pageModel.page === EnumDiagramPage.ORG_TREE"
+  #cmpDiagram
+  [state]="data"
+  [title]="title"
+></app-org-tree>
