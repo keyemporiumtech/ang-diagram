@@ -1,6 +1,8 @@
+import * as go from 'gojs';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { OrgTreeTemplate } from '../../builder/org-tree/org-tree.template';
+import { ObjStateModel } from '../../../shared/model/obj-state.model';
 
 @Component({
   selector: 'app-org-tree',

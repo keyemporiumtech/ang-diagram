@@ -1,5 +1,6 @@
 import * as go from 'gojs';
 import { OrgModel } from '../../model/org.model';
+import { ObjStateModel } from '../../../shared/model/obj-state.model';
 
 export class OrgTreeTemplate {
   static makeTemplate() {
@@ -372,18 +373,22 @@ export class OrgTreeTemplate {
       nodeDataArray: [this.sampleOrgModel(0), this.sampleOrgModel(1)],
     });
 
-    /*
-    myDiagram.model = new go.GraphLinksModel({
-      nodeKeyProperty: 'key',
-      linkToPortIdProperty: 'toPort',
-      linkFromPortIdProperty: 'fromPort',
-      linkKeyProperty: 'key', // IMPORTANT! must be defined for merges and data sync when using GraphLinksMode
-      // nodeDataArray: [this.sampleOrgModel(0), this.sampleOrgModel(1)],
-      // linkDataArray: linkDataArray,
-    });
-    */
-
     return myDiagram;
+  }
+
+  static reloadTemplate(data: ObjStateModel, diagram: go.Diagram) {
+    diagram.model = new go.TreeModel({
+      nodeDataArray: data.diagramNodeData,
+    });
+
+    // make sure new data keys are unique positive integers
+    let lastkey = 1;
+    diagram.model.makeUniqueKeyFunction = (model, data: any) => {
+      let k = data.key || lastkey;
+      while (model.findNodeDataForKey(k)) k++;
+      data.key = lastkey = k;
+      return k;
+    };
   }
 
   static sampleOrgModel(key: string | number, name?: string): OrgModel {

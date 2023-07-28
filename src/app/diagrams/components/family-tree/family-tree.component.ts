@@ -1,7 +1,9 @@
 /** #see https://gojs.net/latest/samples/familyTree.html */
-import { ChangeDetectorRef, Component, ViewEncapsulation } from '@angular/core';
+import * as go from 'gojs';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { FamilyTreeTemplate } from '../../builder/family-tree/family-tree.template';
+import { ObjStateModel } from '../../../shared/model/obj-state.model';
 
 @Component({
   selector: 'app-family-tree',

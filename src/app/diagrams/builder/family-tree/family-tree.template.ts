@@ -1,6 +1,7 @@
 import * as go from 'gojs';
 import { FamilyModel } from '../../model/family.model';
 import { EnumFigureType } from '../../../shared/enum/figure-type.enum';
+import { ObjStateModel } from '../../../shared/model/obj-state.model';
 
 export class FamilyTreeTemplate {
   static maleColor: string = '#90CAF9';
@@ -145,6 +146,29 @@ export class FamilyTreeTemplate {
     return myDiagram;
   }
 
+  static reloadTemplate(data: ObjStateModel, diagram: go.Diagram) {
+    diagram.model = new go.GraphLinksModel({
+      nodeKeyProperty: 'key',
+      linkToPortIdProperty: 'toPort',
+      linkFromPortIdProperty: 'fromPort',
+      linkKeyProperty: 'key', // IMPORTANT! must be defined for merges and data sync when using GraphLinksMode
+      nodeDataArray: data.diagramNodeData,
+      linkDataArray: data.diagramLinkData,
+    });
+  }
+
+  static sampleFamilyModel(key: string | number, name?: string): FamilyModel {
+    const obj: FamilyModel = {
+      key: key,
+      name: name ? name : 'EmptyName',
+      gender: 'M',
+      birthYear: '1981',
+    };
+    return obj;
+  }
+
+  // ------------- UTILS ------------------
+
   // get tooltip text from the object's data
   static tooltipTextConverter = (person: FamilyModel) => {
     var str = '';
@@ -159,14 +183,4 @@ export class FamilyTreeTemplate {
     if (gender === 'F') return this.femaleColor;
     return 'orange';
   };
-
-  static sampleFamilyModel(key: string | number, name?: string): FamilyModel {
-    const obj: FamilyModel = {
-      key: key,
-      name: name ? name : 'EmptyName',
-      gender: 'M',
-      birthYear: '1981',
-    };
-    return obj;
-  }
 }

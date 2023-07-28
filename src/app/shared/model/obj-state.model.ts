@@ -4,4 +4,5 @@ import { StateNodeModel } from './state-node.model';
 export interface ObjStateModel {
   diagramNodeData?: StateNodeModel[];
   diagramLinkData?: StateLinkModel[];
+  skipsDiagramUpdate?: boolean;
 }

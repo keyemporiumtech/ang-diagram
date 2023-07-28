@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  ElementRef,
   OnInit,
   ViewChild,
   ViewEncapsulation,
@@ -23,7 +24,7 @@ import { OrgTreeTemplate } from '../../builder/org-tree/org-tree.template';
   selector: 'app-diagram-page',
   templateUrl: './diagram-page.component.html',
   styleUrls: ['./diagram-page.component.scss'],
-  encapsulation: ViewEncapsulation.ShadowDom,
+  encapsulation: ViewEncapsulation.None,
 })
 export class DiagramPageComponent implements OnInit, AfterViewInit {
   data: ObjStateModel = {};
@@ -31,14 +32,17 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
   filename: string | undefined;
   diagram: Diagram | undefined;
   title: string = '';
+  currentPage: EnumDiagramPage;
 
   EnumDiagramPage = EnumDiagramPage;
   @ViewChild('cmpDiagram') cmpDiagram: DiagramBaseComponent;
+  @ViewChild('textJson') textJson: ElementRef;
 
   constructor(private location: Location) {}
 
   ngOnInit() {
     this.pageModel = this.location.getState();
+    this.currentPage = this.pageModel.page;
     this.loadPage();
   }
 
@@ -53,6 +57,41 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
     }
   }
 
+  saveJson() {
+    if (
+      this.cmpDiagram &&
+      this.cmpDiagram.myDiagramComponent &&
+      this.cmpDiagram.myDiagramComponent.diagram
+    ) {
+      this.textJson.nativeElement.value = JSON.stringify(
+        this.cmpDiagram.state,
+        null,
+        4
+      );
+    }
+  }
+
+  loadJson() {
+    if (
+      this.cmpDiagram &&
+      this.cmpDiagram.myDiagramComponent &&
+      this.cmpDiagram.myDiagramComponent.diagram
+    ) {
+      this.pageModel.page = null;
+      const data = JSON.parse(this.textJson.nativeElement.value);
+
+      const newData: ObjStateModel = {};
+      newData.diagramNodeData = data.diagramNodeData;
+      newData.diagramLinkData = data.diagramLinkData;
+      this.data = newData;
+
+      setTimeout(() => {
+        this.pageModel.page = this.currentPage;
+      }, 1000);
+    }
+  }
+
+  /* ---------------  */
   private loadPage() {
     switch (this.pageModel.page) {
       case EnumDiagramPage.FAMILY_TREE:

@@ -13,10 +13,18 @@ import {
   DiagramComponent,
   PaletteComponent,
 } from 'gojs-angular';
+import { ObjStateModel } from '../../shared/model/obj-state.model';
 
 @Directive()
 export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
-  @Input() state: any;
+  private _state: ObjStateModel | any;
+  @Input() set state(val: ObjStateModel | any) {
+    this._state = val;
+    this.cdr.markForCheck();
+  }
+  get state(): ObjStateModel | any {
+    return this._state;
+  }
   @Input() title: string | undefined = '';
   @Input() flgInspector: boolean | undefined = false;
   @Input() flgPalette: boolean | undefined = false;
@@ -80,9 +88,12 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
   }
 
   public ngAfterViewInit() {
+    this.afterChildFn();
+    /*
     setTimeout(() => {
       this.afterChildFn();
     }, 1000);
+    */
   } // end ngAfterViewInit
 
   /* ------------- IMPLEMENTATIONS ----------------- */
@@ -144,12 +155,16 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
   }
 
   center() {
-    /*
-    this.myDiagramComponent?.diagram?.scale = 1;
+    (this.myDiagramComponent as any).diagram.scale = 1;
     this.myDiagramComponent?.diagram?.scrollToRect(
-      this.myDiagramComponent?.diagram?.findNodeForKey(0)?.actualBounds
+      (this.myDiagramComponent as any).diagram?.findNodeForKey(0)?.actualBounds
     );
-    */
+  }
+
+  getJson(): string {
+    const json = (this.myDiagramComponent as any).diagram.model.toJson();
+    (this.myDiagramComponent as any).diagram.isModified = false;
+    return json;
   }
 
   /* ------------- FUNCTIONS ----------------- */
