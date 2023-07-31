@@ -9,6 +9,7 @@ import { DiagramsRoutingModule } from './diagrams-routing.module';
 import { DiagramHomeComponent } from './pages/diagram-home/diagram-home.component';
 import { OrgTreeComponent } from './components/org-tree/org-tree.component';
 import { KanbanBoardComponent } from './components/kanban-board/kanban-board.component';
+import { GanttComponent } from './components/gantt/gantt.component';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { KanbanBoardComponent } from './components/kanban-board/kanban-board.com
     FamilyTreeComponent,
     OrgTreeComponent,
     KanbanBoardComponent,
+    GanttComponent,
   ],
   imports: [
     CommonModule,
@@ -31,6 +33,7 @@ import { KanbanBoardComponent } from './components/kanban-board/kanban-board.com
     FamilyTreeComponent,
     OrgTreeComponent,
     KanbanBoardComponent,
+    GanttComponent,
   ],
 })
 export class DiagramsModule {

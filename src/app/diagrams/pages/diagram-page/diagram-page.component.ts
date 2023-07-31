@@ -28,6 +28,10 @@ import {
   KanbanBoardProperties,
   KanbanBoardTemplate,
 } from '../../builder/kanban-board/kanban-board.template';
+import { EnumGanttData } from '../../builder/gantt/gantt-data.enum';
+import { GenericGantt } from '../../builder/gantt/datas/generic-gantt';
+import { GanttTemplate } from '../../builder/gantt/gantt.template';
+import { GanttComponent } from '../../components/gantt/gantt.component';
 
 @Component({
   selector: 'app-diagram-page',
@@ -40,11 +44,13 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
   pageModel: DiagramPageModel | any = {};
   filename: string | undefined;
   diagram: Diagram | undefined;
+  diagrams: Diagram[] | undefined;
   title: string = '';
   currentPage: EnumDiagramPage;
 
   EnumDiagramPage = EnumDiagramPage;
   @ViewChild('cmpDiagram') cmpDiagram: DiagramBaseComponent;
+  @ViewChild('cmpGantt') cmpGantt: GanttComponent;
   @ViewChild('textJson') textJson: ElementRef;
 
   constructor(private location: Location) {}
@@ -63,6 +69,24 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
       this.diagram
     ) {
       this.cmpDiagram.myDiagramComponent.diagram = this.diagram;
+    }
+
+    // gantt
+    if (
+      this.cmpGantt &&
+      this.cmpGantt.myTaskComponent &&
+      this.cmpGantt.myTaskComponent.diagram &&
+      this.diagrams
+    ) {
+      this.cmpGantt.myTaskComponent.diagram = this.diagrams[0];
+    }
+    if (
+      this.cmpGantt &&
+      this.cmpGantt.myGanttComponent &&
+      this.cmpGantt.myGanttComponent.diagram &&
+      this.diagrams
+    ) {
+      this.cmpGantt.myGanttComponent.diagram = this.diagrams[1];
     }
   }
 
@@ -112,6 +136,9 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
       case EnumDiagramPage.KANBAN_BOARD:
         this.loadKanban();
         break;
+      case EnumDiagramPage.GANTT:
+        this.loadGantt();
+        break;
     }
   }
 
@@ -152,6 +179,19 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
 
       this.diagram = KanbanBoardTemplate.makeTemplate(propertiesTemplate);
       this.title = 'Kanban Generico';
+    }
+  }
+
+  private loadGantt() {
+    if (this.pageModel.data === EnumGanttData.GENERIC) {
+      this.data.diagramNodeData = GenericGantt.makeData();
+      this.data.diagramLinkData = GenericGantt.makeLink();
+      this.filename = 'GenericGantt.png';
+
+      const templatesGantt = GanttTemplate.makeTemplate();
+      this.diagrams = [templatesGantt.task, templatesGantt.gantt];
+
+      this.title = 'Gantt Generico';
     }
   }
 }

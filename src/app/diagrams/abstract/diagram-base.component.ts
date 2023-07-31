@@ -97,7 +97,7 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
   } // end ngAfterViewInit
 
   /* ------------- IMPLEMENTATIONS ----------------- */
-  abstract initializeDiagram(): go.Diagram;
+  abstract initializeDiagram(): go.Diagram | undefined;
 
   public initPalette(): go.Palette {
     const $ = go.GraphObject.make;
@@ -253,5 +253,10 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
         draft.skipsDiagramUpdate = false; // we need to sync GoJS data with this new app state, so do not skips Diagram update
       }
     });
+  }
+
+  // utils
+  getCdr() {
+    return this.cdr;
   }
 }

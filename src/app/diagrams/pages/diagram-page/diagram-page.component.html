@@ -39,6 +39,13 @@
   [title]="title"
 ></app-kanban-board>
 
+<app-gantt
+  *ngIf="pageModel.page === EnumDiagramPage.GANTT"
+  #cmpGantt
+  [state]="data"
+  [title]="title"
+></app-gantt>
+
 <div [style.margin-top]="'2rem'">
   <div [style.margin]="'1rem'">
     <button id="LoadButton" class="btn btn-sm btn-primary" (click)="loadJson()">
