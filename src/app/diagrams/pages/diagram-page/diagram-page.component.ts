@@ -70,24 +70,6 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
     ) {
       this.cmpDiagram.myDiagramComponent.diagram = this.diagram;
     }
-
-    // gantt
-    if (
-      this.cmpGantt &&
-      this.cmpGantt.myTaskComponent &&
-      this.cmpGantt.myTaskComponent.diagram &&
-      this.diagrams
-    ) {
-      this.cmpGantt.myTaskComponent.diagram = this.diagrams[0];
-    }
-    if (
-      this.cmpGantt &&
-      this.cmpGantt.myGanttComponent &&
-      this.cmpGantt.myGanttComponent.diagram &&
-      this.diagrams
-    ) {
-      this.cmpGantt.myGanttComponent.diagram = this.diagrams[1];
-    }
   }
 
   saveJson() {
