@@ -7,22 +7,12 @@ export class FamilyTreeTemplate {
   static maleColor: string = '#90CAF9';
   static femaleColor: string = '#F48FB1';
   static typeShape: EnumFigureType = EnumFigureType.RETTANGOLO;
+  static textMales: string = 'Males';
+  static textFemales: string = 'Females';
 
-  static makeTemplate(
-    maleColor?: string,
-    femaleColor?: string,
-    type?: EnumFigureType
-  ) {
+  static makeTemplate(properties?: FamilyTreeProperties) {
     // rewrite defaults
-    if (maleColor) {
-      this.maleColor = maleColor;
-    }
-    if (femaleColor) {
-      this.femaleColor = femaleColor;
-    }
-    if (type) {
-      this.typeShape = type;
-    }
+    FamilyTreeMaker.putValues(properties);
 
     const $ = go.GraphObject.make; // for conciseness in defining templates
 
@@ -57,7 +47,9 @@ export class FamilyTreeTemplate {
             fill: this.maleColor,
             margin: 5,
           }),
-          $(go.TextBlock, 'Males', { font: '700 13px Droid Serif, sans-serif' })
+          $(go.TextBlock, this.textMales, {
+            font: '700 13px Droid Serif, sans-serif',
+          })
         ), // end row 1
         $(
           go.Panel,
@@ -68,7 +60,7 @@ export class FamilyTreeTemplate {
             fill: this.femaleColor,
             margin: 5,
           }),
-          $(go.TextBlock, 'Females', {
+          $(go.TextBlock, this.textFemales, {
             font: '700 13px Droid Serif, sans-serif',
           })
         ) // end row 2
@@ -183,4 +175,36 @@ export class FamilyTreeTemplate {
     if (gender === 'F') return this.femaleColor;
     return 'orange';
   };
+}
+
+// ------------------ PROPERTIES
+export interface FamilyTreeProperties {
+  maleColor?: string;
+  femaleColor?: string;
+  typeShape?: EnumFigureType;
+  textMales?: string;
+  textFemales?: string;
+}
+
+// ------------------ MAKER
+export class FamilyTreeMaker {
+  static putValues(properties?: FamilyTreeProperties) {
+    if (properties) {
+      if (properties.maleColor) {
+        FamilyTreeTemplate.maleColor = properties.maleColor;
+      }
+      if (properties.femaleColor) {
+        FamilyTreeTemplate.femaleColor = properties.femaleColor;
+      }
+      if (properties.typeShape) {
+        FamilyTreeTemplate.typeShape = properties.typeShape;
+      }
+      if (properties.textMales) {
+        FamilyTreeTemplate.textMales = properties.textMales;
+      }
+      if (properties.textFemales) {
+        FamilyTreeTemplate.textFemales = properties.textFemales;
+      }
+    }
+  }
 }

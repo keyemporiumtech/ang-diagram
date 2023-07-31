@@ -1,4 +1,4 @@
-import { OrgModel } from '../../model/org.model';
+import { OrgModel } from '../../../model/org.model';
 
 export class GiuseppeOrg {
   static makeData() {
@@ -28,11 +28,5 @@ export class GiuseppeOrg {
 
   static makeLink() {
     return [];
-    const links: any[] = [
-      { key: -1, from: 'n0', to: 'n01' },
-      { key: -2, from: 'n0', to: 'n02' },
-    ];
-
-    return links;
   }
 }

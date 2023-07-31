@@ -32,6 +32,13 @@
   [title]="title"
 ></app-org-tree>
 
+<app-kanban-board
+  *ngIf="pageModel.page === EnumDiagramPage.KANBAN_BOARD"
+  #cmpDiagram
+  [state]="data"
+  [title]="title"
+></app-kanban-board>
+
 <div [style.margin-top]="'2rem'">
   <div [style.margin]="'1rem'">
     <button id="LoadButton" class="btn btn-sm btn-primary" (click)="loadJson()">

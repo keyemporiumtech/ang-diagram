@@ -1,4 +1,4 @@
-import { FamilyModel } from '../../model/family.model';
+import { FamilyModel } from '../../../model/family.model';
 
 export class GiuseppeFamily {
   static makeData() {

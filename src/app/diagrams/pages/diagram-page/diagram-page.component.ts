@@ -7,18 +7,27 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { ObjStateModel } from '../../../shared/model/obj-state.model';
-import { GiuseppeFamily } from '../../builder/family-tree/giuseppe-family';
+import { GiuseppeFamily } from '../../builder/family-tree/datas/giuseppe-family';
 import { DiagramPageModel } from '../../model/diagram-page.model';
 import { EnumDiagramPage } from '../../enum/diagram-page.enum';
 import { EnumFamilyTreeData } from '../../builder/family-tree/family-tree-data.enum';
 import { Location } from '@angular/common';
 import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { Diagram } from 'gojs';
-import { FamilyTreeTemplate } from '../../builder/family-tree/family-tree.template';
+import {
+  FamilyTreeProperties,
+  FamilyTreeTemplate,
+} from '../../builder/family-tree/family-tree.template';
 import { EnumFigureType } from '../../../shared/enum/figure-type.enum';
 import { EnumOrgTreeData } from '../../builder/org-tree/org-tree-data.enum';
-import { GiuseppeOrg } from '../../builder/org-tree/giuseppe-org';
+import { GiuseppeOrg } from '../../builder/org-tree/datas/giuseppe-org';
 import { OrgTreeTemplate } from '../../builder/org-tree/org-tree.template';
+import { EnumKanbanBoardData } from '../../builder/kanban-board/kanban-board-data.enum';
+import { GenericKanban } from '../../builder/kanban-board/datas/generic-kanban';
+import {
+  KanbanBoardProperties,
+  KanbanBoardTemplate,
+} from '../../builder/kanban-board/kanban-board.template';
 
 @Component({
   selector: 'app-diagram-page',
@@ -100,6 +109,9 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
       case EnumDiagramPage.ORG_TREE:
         this.loadOrg();
         break;
+      case EnumDiagramPage.KANBAN_BOARD:
+        this.loadKanban();
+        break;
     }
   }
 
@@ -108,11 +120,11 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
       this.data.diagramNodeData = GiuseppeFamily.makeData();
       this.data.diagramLinkData = GiuseppeFamily.makeLink();
       this.filename = 'GiuseppeFamily.png';
-      this.diagram = FamilyTreeTemplate.makeTemplate(
-        undefined,
-        undefined,
-        EnumFigureType.ARROTONDATO
-      );
+
+      const propertiesTemplate: FamilyTreeProperties = {
+        typeShape: EnumFigureType.ARROTONDATO,
+      };
+      this.diagram = FamilyTreeTemplate.makeTemplate(propertiesTemplate);
       this.title = 'Famiglia di Giuseppe';
     }
   }
@@ -124,6 +136,22 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
       this.filename = 'GiuseppeOrg.png';
       this.diagram = OrgTreeTemplate.makeTemplate();
       this.title = 'Organizzazione di Giuseppe';
+    }
+  }
+
+  private loadKanban() {
+    if (this.pageModel.data === EnumKanbanBoardData.GENERIC) {
+      this.data.diagramNodeData = GenericKanban.makeData();
+      this.data.diagramLinkData = GenericKanban.makeLink();
+      this.filename = 'GenericKanban.png';
+
+      const propertiesTemplate: KanbanBoardProperties = {
+        shapeGroup: { type: EnumFigureType.ARROTONDATO },
+        textStatusCOMPLETE: { color: 'green' },
+      };
+
+      this.diagram = KanbanBoardTemplate.makeTemplate(propertiesTemplate);
+      this.title = 'Kanban Generico';
     }
   }
 }

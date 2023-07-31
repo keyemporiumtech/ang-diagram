@@ -1,9 +1,34 @@
 import * as go from 'gojs';
 import { OrgModel } from '../../model/org.model';
 import { ObjStateModel } from '../../../shared/model/obj-state.model';
+import { EnumFigureType } from '../../../shared/enum/figure-type.enum';
+import { ShapeModel } from '../../model/shape.model';
 
 export class OrgTreeTemplate {
-  static makeTemplate() {
+  static levelColors: string[] = [
+    '#AC193D',
+    '#2672EC',
+    '#8C0095',
+    '#5133AB',
+    '#008299',
+    '#D24726',
+    '#008A00',
+    '#094AB2',
+  ];
+  static shape: ShapeModel = {
+    type: EnumFigureType.RETTANGOLO,
+    background: '#333333',
+    borderColor: 'white',
+    borderSize: 3.5,
+  };
+  static textAddEmploy: string = 'Add Employee';
+  static textVacatePosition: string = 'Vacate Position';
+  static textRemoveRole: string = 'Remove Role';
+  static textRemoveDepartment: string = 'Remove Department';
+
+  static makeTemplate(properties?: OrgTreeProperties) {
+    OrgTreeMaker.putValues(properties);
+
     const $ = go.GraphObject.make; // for conciseness in defining templates
 
     const myDiagram = $(go.Diagram, {
@@ -57,17 +82,6 @@ export class OrgTreeTemplate {
       }
     });
 
-    const levelColors = [
-      '#AC193D',
-      '#2672EC',
-      '#8C0095',
-      '#5133AB',
-      '#008299',
-      '#D24726',
-      '#008A00',
-      '#094AB2',
-    ];
-
     // override TreeLayout.commitNodes to also modify the background brush based on the tree depth level
     (myDiagram.layout as any).commitNodes = function () {
       // method override must be function, not =>
@@ -76,8 +90,8 @@ export class OrgTreeTemplate {
       // to a brush dependent on the TreeVertex.level value
       myDiagram.layout.network?.vertexes.each((v: any) => {
         if (v.node) {
-          const level = v.level % levelColors.length;
-          const color = levelColors[level];
+          const level = v.level % OrgTreeTemplate.levelColors.length;
+          const color = OrgTreeTemplate.levelColors[level];
           const shape = v.node.findObject('SHAPE');
           if (shape)
             shape.stroke = $(go.Brush, 'Linear', {
@@ -89,26 +103,6 @@ export class OrgTreeTemplate {
         }
       });
     };
-
-    // this is used to determine feedback during drags
-    function mayWorkFor(node1: go.Node | any, node2: go.Node | any) {
-      if (!(node1 instanceof go.Node)) return false; // must be a Node
-      if (node1 === node2) return false; // cannot work for yourself
-      if (node2.isInTreeOf(node1)) return false; // cannot work for someone who works for you
-      return true;
-    }
-
-    // This function provides a common style for most of the TextBlocks.
-    // Some of these values may be overridden in a particular TextBlock.
-    function textStyle() {
-      return { font: '9pt  Segoe UI,sans-serif', stroke: 'white' };
-    }
-
-    // This converter is used by the Picture.
-    function findHeadShot(pic: any) {
-      if (!pic) return 'assets/images/orgTree/user.png'; // There are only 16 images on the server
-      return 'assets/images/orgTree/' + pic;
-    }
 
     // define the Node template
     myDiagram.nodeTemplate = $(
@@ -130,7 +124,7 @@ export class OrgTreeTemplate {
         mouseDragEnter: (e, node, prev) => {
           const diagram = node.diagram;
           const selnode = diagram?.selection.first();
-          if (!mayWorkFor(selnode, node)) return;
+          if (!this.mayWorkFor(selnode, node)) return;
           const shape = (node as any).findObject('SHAPE');
           if (shape) {
             shape._prevFill = shape.fill; // remember the original brush
@@ -146,7 +140,7 @@ export class OrgTreeTemplate {
         mouseDrop: (e, node) => {
           const diagram = node.diagram;
           const selnode = diagram?.selection.first(); // assume just one Node in selection
-          if (mayWorkFor(selnode, node)) {
+          if (this.mayWorkFor(selnode, node)) {
             // find any existing link into the selected node
             const link = (selnode as any).findTreeParentLink();
             if (link !== null) {
@@ -175,11 +169,11 @@ export class OrgTreeTemplate {
         'Auto',
         { name: 'BODY' },
         // define the node's outer shape
-        $(go.Shape, 'Rectangle', {
+        $(go.Shape, (this.shape as any).type, {
           name: 'SHAPE',
-          fill: '#333333',
-          stroke: 'white',
-          strokeWidth: 3.5,
+          fill: (this.shape as any).background,
+          stroke: (this.shape as any).borderColor,
+          strokeWidth: (this.shape as any).borderSize,
           portId: '',
         }),
         $(
@@ -193,7 +187,7 @@ export class OrgTreeTemplate {
               margin: 1.5,
               source: 'assets/images/orgTree/user.png', // the default image
             },
-            new go.Binding('source', 'pic', findHeadShot)
+            new go.Binding('source', 'pic', this.findHeadShot)
           ),
           // define the panel where the text will appear
           $(
@@ -208,7 +202,7 @@ export class OrgTreeTemplate {
             $(go.RowColumnDefinition, { column: 2, width: 4 }),
             $(
               go.TextBlock,
-              textStyle(), // the name
+              this.textStyle(), // the name
               {
                 name: 'NAMETB',
                 row: 0,
@@ -221,10 +215,10 @@ export class OrgTreeTemplate {
               },
               new go.Binding('text', 'name').makeTwoWay()
             ),
-            $(go.TextBlock, 'Title: ', textStyle(), { row: 1, column: 0 }),
+            $(go.TextBlock, 'Title: ', this.textStyle(), { row: 1, column: 0 }),
             $(
               go.TextBlock,
-              textStyle(),
+              this.textStyle(),
               {
                 row: 1,
                 column: 1,
@@ -238,13 +232,13 @@ export class OrgTreeTemplate {
             ),
             $(
               go.TextBlock,
-              textStyle(),
+              this.textStyle(),
               { row: 2, column: 0 },
               new go.Binding('text', 'key', (v) => 'ID: ' + v)
             ),
             $(
               go.TextBlock,
-              textStyle(), // the comments
+              this.textStyle(), // the comments
               {
                 row: 3,
                 column: 0,
@@ -307,24 +301,28 @@ export class OrgTreeTemplate {
     // remove a role and reassign the subtree, or remove a department
     myDiagram.nodeTemplate.contextMenu = $(
       'ContextMenu',
-      $('ContextMenuButton', $(go.TextBlock, 'Add Employee'), {
+      $('ContextMenuButton', $(go.TextBlock, OrgTreeTemplate.textAddEmploy), {
         click: (e, button) => addEmployee((button.part as any).adornedPart),
       }),
-      $('ContextMenuButton', $(go.TextBlock, 'Vacate Position'), {
-        click: (e, button) => {
-          const node = (button.part as any).adornedPart;
-          if (node !== null) {
-            const thisemp = node.data;
-            myDiagram.startTransaction('vacate');
-            // update the key, name, picture, and comments, but leave the title
-            myDiagram.model.setDataProperty(thisemp, 'name', '(Vacant)');
-            myDiagram.model.setDataProperty(thisemp, 'pic', '');
-            myDiagram.model.setDataProperty(thisemp, 'comments', '');
-            myDiagram.commitTransaction('vacate');
-          }
-        },
-      }),
-      $('ContextMenuButton', $(go.TextBlock, 'Remove Role'), {
+      $(
+        'ContextMenuButton',
+        $(go.TextBlock, OrgTreeTemplate.textVacatePosition),
+        {
+          click: (e, button) => {
+            const node = (button.part as any).adornedPart;
+            if (node !== null) {
+              const thisemp = node.data;
+              myDiagram.startTransaction('vacate');
+              // update the key, name, picture, and comments, but leave the title
+              myDiagram.model.setDataProperty(thisemp, 'name', '(Vacant)');
+              myDiagram.model.setDataProperty(thisemp, 'pic', '');
+              myDiagram.model.setDataProperty(thisemp, 'comments', '');
+              myDiagram.commitTransaction('vacate');
+            }
+          },
+        }
+      ),
+      $('ContextMenuButton', $(go.TextBlock, OrgTreeTemplate.textRemoveRole), {
         click: (e, button) => {
           // reparent the subtree to this node's boss, then remove the node
           const node = (button.part as any).adornedPart;
@@ -345,17 +343,21 @@ export class OrgTreeTemplate {
           }
         },
       }),
-      $('ContextMenuButton', $(go.TextBlock, 'Remove Department'), {
-        click: (e, button) => {
-          // remove the whole subtree, including the node itself
-          const node = (button.part as any).adornedPart;
-          if (node !== null) {
-            myDiagram.startTransaction('remove dept');
-            myDiagram.removeParts(node.findTreeParts());
-            myDiagram.commitTransaction('remove dept');
-          }
-        },
-      })
+      $(
+        'ContextMenuButton',
+        $(go.TextBlock, OrgTreeTemplate.textRemoveDepartment),
+        {
+          click: (e, button) => {
+            // remove the whole subtree, including the node itself
+            const node = (button.part as any).adornedPart;
+            if (node !== null) {
+              myDiagram.startTransaction('remove dept');
+              myDiagram.removeParts(node.findTreeParts());
+              myDiagram.commitTransaction('remove dept');
+            }
+          },
+        }
+      )
     );
 
     // define the Link template
@@ -399,5 +401,78 @@ export class OrgTreeTemplate {
       title: 'EmptyTitle',
     };
     return obj;
+  }
+
+  // ------------- UTILS ------------------
+  // this is used to determine feedback during drags
+  static mayWorkFor(node1: go.Node | any, node2: go.Node | any) {
+    if (!(node1 instanceof go.Node)) return false; // must be a Node
+    if (node1 === node2) return false; // cannot work for yourself
+    if (node2.isInTreeOf(node1)) return false; // cannot work for someone who works for you
+    return true;
+  }
+
+  // This function provides a common style for most of the TextBlocks.
+  // Some of these values may be overridden in a particular TextBlock.
+  static textStyle() {
+    return { font: '9pt  Segoe UI,sans-serif', stroke: 'white' };
+  }
+
+  // This converter is used by the Picture.
+  static findHeadShot(pic: any) {
+    if (!pic) return 'assets/images/orgTree/user.png'; // There are only 16 images on the server
+    return 'assets/images/orgTree/' + pic;
+  }
+}
+
+// ------------------ PROPERTIES
+export interface OrgTreeProperties {
+  levelColors?: string[];
+  shape?: ShapeModel;
+  textAddEmploy?: string;
+  textVacatePosition?: string;
+  textRemoveRole?: string;
+  textRemoveDepartment?: string;
+}
+
+// ------------------ MAKER
+export class OrgTreeMaker {
+  static putValues(properties?: OrgTreeProperties) {
+    if (properties) {
+      if (properties.levelColors) {
+        OrgTreeTemplate.levelColors = properties.levelColors;
+      }
+      if (properties.shape) {
+        this.putShape(properties.shape);
+      }
+      if (properties.textAddEmploy) {
+        OrgTreeTemplate.textAddEmploy = properties.textAddEmploy;
+      }
+      if (properties.textVacatePosition) {
+        OrgTreeTemplate.textVacatePosition = properties.textVacatePosition;
+      }
+      if (properties.textRemoveRole) {
+        OrgTreeTemplate.textRemoveRole = properties.textRemoveRole;
+      }
+      if (properties.textRemoveDepartment) {
+        OrgTreeTemplate.textRemoveDepartment = properties.textRemoveDepartment;
+      }
+    }
+  }
+  static putShape(shape?: ShapeModel) {
+    if (shape) {
+      if (shape.type) {
+        OrgTreeTemplate.shape.type = shape.type;
+      }
+      if (shape.background) {
+        OrgTreeTemplate.shape.background = shape.background;
+      }
+      if (shape.borderColor) {
+        OrgTreeTemplate.shape.borderColor = shape.borderColor;
+      }
+      if (shape.borderSize) {
+        OrgTreeTemplate.shape.borderSize = shape.borderSize;
+      }
+    }
   }
 }
