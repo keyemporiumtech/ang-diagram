@@ -1,143 +1,15 @@
 import * as go from 'gojs';
-import { ObjStateModel } from '../../../shared/model/obj-state.model';
-import { EnumKanbanStatus, KanbanModel } from '../../model/kanban.model';
-import { EnumFigureType } from '../../../shared/enum/figure-type.enum';
-import { ShapeModel } from '../../model/shape.model';
+import { PoolLayout } from './classes/pool.layout';
+import { KanbanUtility } from './utility/kanban.utility';
+import { KanbanProperties } from './properties/kanban.properties';
+import { KanbanPropertiesMaker } from './properties/kanban-properties.maker';
 
 export class KanbanBoardTemplate {
-  static noteColors: string[] = ['lightgray', '#CC293D', '#FFD700', '#009CCC'];
-  static shapeGroup: ShapeModel = {
-    type: EnumFigureType.RETTANGOLO,
-    background: '#009CCC',
-    borderColor: '#009CCC',
-    borderSize: 1,
-  };
-  static shapeNode: ShapeModel = {
-    type: EnumFigureType.RETTANGOLO,
-    background: 'white',
-    borderColor: '#CCCCCC',
-  };
-  static textStatusSTOP: { color: string; text: string } = {
-    color: '#CC293D',
-    text: 'Stopped',
-  };
-  static textStatusPROGRESS: { color: string; text: string } = {
-    color: '#FFD700',
-    text: 'In Progress',
-  };
-  static textStatusCOMPLETE: { color: string; text: string } = {
-    color: '#009CCC',
-    text: 'Completed',
-  };
+  static make(divDiagramId: string, properties?: KanbanProperties) {
+    KanbanPropertiesMaker.setValues(properties);
 
-  static makeTemplate(properties?: KanbanBoardProperties) {
-    KanbanBoardMaker.putValues(properties);
-
-    // define a custom grid layout that makes sure the length of each lane is the same
-    // and that each lane is broad enough to hold its subgraph
-    class PoolLayout extends go.GridLayout {
-      MINLENGTH = 200; // this controls the minimum length of any swimlane
-      MINBREADTH = 100; // this controls the minimum breadth of any non-collapsed swimlane
-      constructor() {
-        super();
-        this.MINLENGTH = 200; // this controls the minimum length of any swimlane
-        this.MINBREADTH = 100; // this controls the minimum breadth of any non-collapsed swimlane
-        this.cellSize = new go.Size(1, 1);
-        this.wrappingColumn = Infinity;
-        this.wrappingWidth = Infinity;
-        this.spacing = new go.Size(0, 0);
-        this.alignment = go.GridLayout.Position;
-      }
-
-      override doLayout(coll: any) {
-        const diagram = this.diagram;
-        if (diagram === null) return;
-        diagram.startTransaction('PoolLayout');
-        // make sure all of the Group Shapes are big enough
-        const minlen = this.computeMinPoolLength();
-        diagram.findTopLevelGroups().each((lane) => {
-          if (!(lane instanceof go.Group)) return;
-          const shape = lane.selectionObject;
-          if (shape !== null) {
-            // change the desiredSize to be big enough in both directions
-            const sz = this.computeLaneSize(lane);
-            shape.width = !isNaN(shape.width)
-              ? Math.max(shape.width, sz.width)
-              : sz.width;
-            // if you want the height of all of the lanes to shrink as the maximum needed height decreases:
-            shape.height = minlen;
-            // if you want the height of all of the lanes to remain at the maximum height ever needed:
-            //shape.height = (isNaN(shape.height) ? minlen : Math.max(shape.height, minlen));
-            const cell = lane.resizeCellSize;
-            if (!isNaN(shape.width) && !isNaN(cell.width) && cell.width > 0)
-              shape.width = Math.ceil(shape.width / cell.width) * cell.width;
-            if (!isNaN(shape.height) && !isNaN(cell.height) && cell.height > 0)
-              shape.height =
-                Math.ceil(shape.height / cell.height) * cell.height;
-          }
-        });
-        // now do all of the usual stuff, according to whatever properties have been set on this GridLayout
-        super.doLayout(coll);
-        diagram.commitTransaction('PoolLayout');
-      }
-
-      // compute the minimum length of the whole diagram needed to hold all of the Lane Groups
-      computeMinPoolLength() {
-        let len = this.MINLENGTH;
-        myDiagram.findTopLevelGroups().each((lane) => {
-          const holder = lane.placeholder;
-          if (holder !== null) {
-            const sz = holder.actualBounds;
-            len = Math.max(len, sz.height);
-          }
-        });
-        return len;
-      }
-
-      // compute the minimum size for a particular Lane Group
-      computeLaneSize(lane: any) {
-        // assert(lane instanceof go.Group);
-        const sz = new go.Size(
-          lane.isSubGraphExpanded ? this.MINBREADTH : 1,
-          this.MINLENGTH
-        );
-        if (lane.isSubGraphExpanded) {
-          const holder = lane.placeholder;
-          if (holder !== null) {
-            const hsz = holder.actualBounds;
-            sz.width = Math.max(sz.width, hsz.width);
-          }
-        }
-        // minimum breadth needs to be big enough to hold the header
-        const hdr = lane.findObject('HEADER');
-        if (hdr !== null) sz.width = Math.max(sz.width, hdr.actualBounds.width);
-        return sz;
-      }
-    }
-    // end PoolLayout class
-
-    // -------------- DIAGRAM
-
-    const $ = go.GraphObject.make;
-
-    const myDiagram = $(go.Diagram, {
-      // make sure the top-left corner of the viewport is occupied
-      contentAlignment: go.Spot.TopCenter,
-      // use a simple layout to stack the top-level Groups next to each other
-      layout: $(PoolLayout),
-      // disallow nodes to be dragged to the diagram's background
-      mouseDrop: (e: any) => {
-        e.diagram.currentTool.doCancel();
-      },
-      // a clipboard copied node is pasted into the original node's group (i.e. lane).
-      'commandHandler.copiesGroupKey': true,
-      // automatically re-layout the swim lanes after dragging the selection
-      SelectionMoved: relayoutDiagram, // this DiagramEvent listener is
-      SelectionCopied: relayoutDiagram, // defined above
-      'undoManager.isEnabled': true,
-      // allow TextEditingTool to start without selecting first
-      'textEditingTool.starting': go.TextEditingTool.SingleClick,
-    });
+    const myDiagram = this.makeDiagram(divDiagramId);
+    myDiagram.layout = new PoolLayout(myDiagram);
 
     // Customize the dragging tool:
     // When dragging a node set its opacity to 0.6 and move it to be in front of other nodes
@@ -154,11 +26,33 @@ export class KanbanBoardTemplate {
       go.DraggingTool.prototype.doDeactivate.call(this);
     };
 
-    // this is called after nodes have been moved
-    function relayoutDiagram() {
-      myDiagram.selection.each((n) => n.invalidateLayout());
-      myDiagram.layoutDiagram();
-    }
+    // automatically re-layout the swim lanes after dragging the selection
+    myDiagram.addDiagramListener('SelectionMoved', (e: any) =>
+      KanbanUtility.relayoutDiagram(myDiagram)
+    );
+    myDiagram.addDiagramListener('SelectionCopied', (e: any) =>
+      KanbanUtility.relayoutDiagram(myDiagram)
+    );
+
+    return myDiagram;
+  }
+
+  static makeDiagram(divId: string) {
+    const $ = go.GraphObject.make;
+
+    const myDiagram = new go.Diagram(divId, {
+      // make sure the top-left corner of the viewport is occupied
+      contentAlignment: go.Spot.TopLeft,
+      // disallow nodes to be dragged to the diagram's background
+      mouseDrop: (e) => {
+        e.diagram.currentTool.doCancel();
+      },
+      // a clipboard copied node is pasted into the original node's group (i.e. lane).
+      'commandHandler.copiesGroupKey': true,
+      'undoManager.isEnabled': true,
+      // allow TextEditingTool to start without selecting first
+      'textEditingTool.starting': go.TextEditingTool.SingleClick,
+    });
 
     myDiagram.nodeTemplate = $(
       go.Node,
@@ -166,13 +60,14 @@ export class KanbanBoardTemplate {
       new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(
         go.Point.stringify
       ),
+      KanbanUtility.standardContextMenus(),
       $(
         go.Shape,
-        (this.shapeGroup as any).type,
+        (KanbanUtility.shapeGroup as any).type,
         {
-          fill: (this.shapeGroup as any).background,
-          strokeWidth: (this.shapeGroup as any).borderSize,
-          stroke: (this.shapeGroup as any).borderColor,
+          fill: (KanbanUtility.shapeGroup as any).background,
+          strokeWidth: (KanbanUtility.shapeGroup as any).borderSize,
+          stroke: (KanbanUtility.shapeGroup as any).borderColor,
           width: 6,
           stretch: go.GraphObject.Vertical,
           alignment: go.Spot.Left,
@@ -180,21 +75,20 @@ export class KanbanBoardTemplate {
           click: (e: any, obj: any) => {
             myDiagram.startTransaction('Update node color');
             let newColor = parseInt(obj.part.data.color) + 1;
-            if (newColor > KanbanBoardTemplate.noteColors.length - 1)
-              newColor = 0;
+            if (newColor > KanbanUtility.noteColors.length - 1) newColor = 0;
             myDiagram.model.setDataProperty(obj.part.data, 'color', newColor);
             myDiagram.commitTransaction('Update node color');
           },
         },
-        new go.Binding('fill', 'color', this.getNoteColor),
-        new go.Binding('stroke', 'color', this.getNoteColor)
+        new go.Binding('fill', 'color', KanbanUtility.getNoteColor),
+        new go.Binding('stroke', 'color', KanbanUtility.getNoteColor)
       ),
       $(
         go.Panel,
         'Auto',
-        $(go.Shape, (this.shapeNode as any).type, {
-          fill: (this.shapeNode as any).background,
-          stroke: (this.shapeNode as any).borderColor,
+        $(go.Shape, (KanbanUtility.shapeNode as any).type, {
+          fill: (KanbanUtility.shapeNode as any).background,
+          stroke: (KanbanUtility.shapeNode as any).borderColor,
         }),
         $(
           go.Panel,
@@ -216,18 +110,6 @@ export class KanbanBoardTemplate {
         )
       )
     );
-
-    // While dragging, highlight the dragged-over group
-    function highlightGroup(grp: any, show: any) {
-      if (show) {
-        const part: any = myDiagram.toolManager.draggingTool.currentPart;
-        if (part.containingGroup !== grp) {
-          grp.isHighlighted = true;
-          return;
-        }
-      }
-      grp.isHighlighted = false;
-    }
 
     myDiagram.groupTemplate = $(
       go.Group,
@@ -261,8 +143,10 @@ export class KanbanBoardTemplate {
         computesBoundsIncludingLocation: true,
         computesBoundsAfterDrag: true, // needed to prevent recomputing Group.placeholder bounds too soon
         handlesDragDropForMembers: true, // don't need to define handlers on member Nodes and Links
-        mouseDragEnter: (e, grp, prev) => highlightGroup(grp, true),
-        mouseDragLeave: (e, grp, next) => highlightGroup(grp, false),
+        mouseDragEnter: (e, grp, prev) =>
+          KanbanUtility.highlightGroup(grp, true, myDiagram),
+        mouseDragLeave: (e, grp, next) =>
+          KanbanUtility.highlightGroup(grp, false, myDiagram),
         mouseDrop: (e, grp: any) => {
           // dropping a copy of some Nodes and Links onto this Group adds them to this Group
           // don't allow drag-and-dropping a mix of regular Nodes and Groups
@@ -353,10 +237,10 @@ export class KanbanBoardTemplate {
           { row: 1, alignment: go.Spot.Left },
           $(go.Shape, 'Rectangle', {
             desiredSize: new go.Size(10, 10),
-            fill: this.textStatusSTOP.color,
+            fill: KanbanUtility.textStatusSTOP.color,
             margin: 5,
           }),
-          $(go.TextBlock, this.textStatusSTOP.text, {
+          $(go.TextBlock, KanbanUtility.textStatusSTOP.text, {
             font: '700 13px Droid Serif, sans-serif',
           })
         ), // end row 1
@@ -366,10 +250,10 @@ export class KanbanBoardTemplate {
           { row: 2, alignment: go.Spot.Left },
           $(go.Shape, 'Rectangle', {
             desiredSize: new go.Size(10, 10),
-            fill: this.textStatusPROGRESS.color,
+            fill: KanbanUtility.textStatusPROGRESS.color,
             margin: 5,
           }),
-          $(go.TextBlock, this.textStatusPROGRESS.text, {
+          $(go.TextBlock, KanbanUtility.textStatusPROGRESS.text, {
             font: '700 13px Droid Serif, sans-serif',
           })
         ), // end row 2
@@ -379,10 +263,10 @@ export class KanbanBoardTemplate {
           { row: 3, alignment: go.Spot.Left },
           $(go.Shape, 'Rectangle', {
             desiredSize: new go.Size(10, 10),
-            fill: this.textStatusCOMPLETE.color,
+            fill: KanbanUtility.textStatusCOMPLETE.color,
             margin: 5,
           }),
-          $(go.TextBlock, this.textStatusCOMPLETE.text, {
+          $(go.TextBlock, KanbanUtility.textStatusCOMPLETE.text, {
             font: '700 13px Droid Serif, sans-serif',
           })
         ), // end row 3
@@ -393,14 +277,15 @@ export class KanbanBoardTemplate {
             row: 4,
             click: (e, node) => {
               e.diagram.startTransaction('add node');
-              let sel: any = e.diagram.selection.first();
+              let sel = e.diagram.selection.first();
               if (!sel) sel = e.diagram.findTopLevelGroups().first();
-              if (!(sel instanceof go.Group)) sel = sel.containingGroup;
+              if (!(sel instanceof go.Group))
+                sel = (sel as any).containingGroup;
               if (!sel) return;
               const newdata = {
                 group: sel.key,
                 loc: '0 9999',
-                text: 'New item ' + sel.memberParts.count,
+                text: 'New item ' + (sel as any).memberParts.count,
                 color: 0,
               };
               e.diagram.model.addNodeData(newdata);
@@ -444,133 +329,5 @@ export class KanbanBoardTemplate {
     });
 
     return myDiagram;
-  }
-
-  static reloadTemplate(data: ObjStateModel, diagram: go.Diagram) {}
-
-  static sampleOrgModel(key: string | number, title?: string): KanbanModel {
-    const obj: KanbanModel = {
-      key: key,
-      text: title ? title : 'EmptyName',
-      isGroup: true,
-      color: EnumKanbanStatus.NONE,
-    };
-    return obj;
-  }
-
-  // ------------- UTILS ------------------
-
-  // There are only three note colors by default, blue, red, and yellow but you could add more here:
-
-  static getNoteColor(num: any) {
-    return KanbanBoardTemplate.noteColors[
-      Math.min(num, KanbanBoardTemplate.noteColors.length - 1)
-    ];
-  }
-}
-
-// ------------------ PROPERTIES
-export interface KanbanBoardProperties {
-  noteColors?: string[];
-  shapeGroup?: ShapeModel;
-  shapeNode?: ShapeModel;
-  textStatusSTOP?: { color?: string; text?: string };
-  textStatusPROGRESS?: { color?: string; text?: string };
-  textStatusCOMPLETE?: { color?: string; text?: string };
-}
-
-// ------------------ MAKER
-export class KanbanBoardMaker {
-  static putValues(properties?: KanbanBoardProperties) {
-    if (properties) {
-      if (properties.noteColors) {
-        KanbanBoardTemplate.noteColors = properties.noteColors;
-      }
-      if (properties.shapeGroup) {
-        this.putShapeGroup(properties.shapeGroup);
-      }
-      if (properties.shapeNode) {
-        this.putShapeNode(properties.shapeNode);
-      }
-      if (properties.textStatusSTOP) {
-        this.putTextSTOP(properties.textStatusSTOP);
-      }
-      if (properties.textStatusPROGRESS) {
-        this.putTextPROGRESS(properties.textStatusPROGRESS);
-      }
-      if (properties.textStatusCOMPLETE) {
-        this.putTextCOMPLETE(properties.textStatusCOMPLETE);
-      }
-    }
-  }
-
-  static putShapeGroup(shape?: ShapeModel) {
-    if (shape) {
-      if (shape.type) {
-        KanbanBoardTemplate.shapeGroup.type = shape.type;
-      }
-      if (shape.background) {
-        KanbanBoardTemplate.shapeGroup.background = shape.background;
-      }
-      if (shape.borderColor) {
-        KanbanBoardTemplate.shapeGroup.borderColor = shape.borderColor;
-      }
-      if (shape.borderSize) {
-        KanbanBoardTemplate.shapeGroup.borderSize = shape.borderSize;
-      }
-    }
-  }
-
-  static putShapeNode(shape?: ShapeModel) {
-    if (shape) {
-      if (shape.type) {
-        KanbanBoardTemplate.shapeNode.type = shape.type;
-      }
-      if (shape.background) {
-        KanbanBoardTemplate.shapeNode.background = shape.background;
-      }
-      if (shape.borderColor) {
-        KanbanBoardTemplate.shapeNode.borderColor = shape.borderColor;
-      }
-      if (shape.borderSize) {
-        KanbanBoardTemplate.shapeNode.borderSize = shape.borderSize;
-      }
-    }
-  }
-
-  static putTextSTOP(text?: { color?: string; text?: string }) {
-    if (text) {
-      if (text.color) {
-        KanbanBoardTemplate.textStatusSTOP.color = text.color;
-        KanbanBoardTemplate.noteColors[1] = text.color;
-      }
-      if (text.text) {
-        KanbanBoardTemplate.textStatusSTOP.text = text.text;
-      }
-    }
-  }
-
-  static putTextPROGRESS(text?: { color?: string; text?: string }) {
-    if (text) {
-      if (text.color) {
-        KanbanBoardTemplate.textStatusPROGRESS.color = text.color;
-        KanbanBoardTemplate.noteColors[2] = text.color;
-      }
-      if (text.text) {
-        KanbanBoardTemplate.textStatusPROGRESS.text = text.text;
-      }
-    }
-  }
-
-  static putTextCOMPLETE(text?: { color?: string; text?: string }) {
-    if (text) {
-      if (text.color) {
-        KanbanBoardTemplate.textStatusCOMPLETE.color = text.color;
-        KanbanBoardTemplate.noteColors[3] = text.color;
-      }
-      if (text.text) {
-        KanbanBoardTemplate.textStatusCOMPLETE.text = text.text;
-      }
-    }
   }
 }

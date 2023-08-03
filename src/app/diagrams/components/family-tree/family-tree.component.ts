@@ -4,13 +4,14 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { FamilyTreeTemplate } from '../../builder/family-tree/family-tree.template';
 import { ObjStateModel } from '../../../shared/model/obj-state.model';
+import { DiagramAngBaseComponent } from '../../abstract/diagram-ang-base.component';
 
 @Component({
   selector: 'app-family-tree',
   templateUrl: './family-tree.component.html',
   styleUrls: ['./family-tree.component.scss'],
 })
-export class FamilyTreeComponent extends DiagramBaseComponent {
+export class FamilyTreeComponent extends DiagramAngBaseComponent {
   constructor(cdr: ChangeDetectorRef) {
     super(cdr);
   }

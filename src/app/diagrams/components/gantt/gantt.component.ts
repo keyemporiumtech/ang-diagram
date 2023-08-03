@@ -1,14 +1,15 @@
 import * as go from 'gojs';
-import produce from 'immer';
 import {
-  ChangeDetectorRef,
   Component,
+  ElementRef,
+  Input,
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { GanttTemplate } from '../../builder/gantt/gantt.template';
-import { DataSyncService, DiagramComponent } from 'gojs-angular';
+import { GanttUtility } from '../../builder/gantt/utility/gantt.utility';
+import { GanttModel } from '../../model/gantt.model';
 
 @Component({
   selector: 'app-gantt',
@@ -17,173 +18,193 @@ import { DataSyncService, DiagramComponent } from 'gojs-angular';
   encapsulation: ViewEncapsulation.None,
 })
 export class GanttComponent extends DiagramBaseComponent {
+  @Input() preferredColors: string[];
+  enableSelectColors: boolean;
   template: any;
+  dataInizio: Date;
+  divTaskId = 'myTaskDiv';
+  divGanttId = 'myGanttDiv';
 
-  constructor(cdr: ChangeDetectorRef) {
-    super(cdr);
+  // form insert
+  @ViewChild('inputName') inputName: ElementRef<any>;
+  @ViewChild('inputStart') inputStart: ElementRef<any>;
+  @ViewChild('inputDuration') inputDuration: ElementRef<any>;
+  @ViewChild('inputColor') inputColor: ElementRef<any>;
+
+  constructor() {
+    super();
   }
-  public observedDiagramTask: any | null = null;
-  public observedDiagramGantt: any | null = null;
-
-  @ViewChild('myTask', { static: true })
-  public myTaskComponent: DiagramComponent | undefined;
-  @ViewChild('myGantt', { static: true })
-  public myGanttComponent: DiagramComponent | undefined;
 
   override ngOnInit(): void {
-    super.ngOnInit();
+    if (this.preferredColors && this.preferredColors.length) {
+      this.enableSelectColors = true;
+    }
   }
 
   override ngAfterViewInit(): void {
-    this.afterChildTaskFn();
-    this.afterChildGanttFn();
+    setTimeout(() => {
+      const myModel = this.getModel();
+      this.template = GanttTemplate.make(
+        this.divTaskId,
+        this.divGanttId,
+        this.diagramProperties
+      );
+      this.template.task.model = myModel;
+      this.template.gantt.model = myModel;
+      this.dataInizio = GanttUtility.StartDate;
+      this.diagram = this.template.task;
+    }, 1000);
   }
 
-  override initializeDiagram() {
-    return undefined;
+  override getModel(): go.GraphLinksModel {
+    return this.defaultModel();
   }
 
-  initTask() {
-    return GanttTemplate.makeTemplate().task;
+  override keepDataDetailFromEvent(data: GanttModel) {
+    if (data && data.color && this.inputColor) {
+      this.inputColor.nativeElement.value = data.color;
+    }
+    if (this.inputStart) {
+      this.inputStart.nativeElement.value = this.formatDate(this.dataInizio);
+    }
+    if (this.inputDuration) {
+      this.inputDuration.nativeElement.value = '7';
+    }
   }
-  initGantt() {
-    return GanttTemplate.makeTemplate().gantt;
+  override keepDataUpdateFromEvent(data: GanttModel) {
+    if (this.inputName) {
+      this.inputName.nativeElement.value = data.text;
+    }
+
+    if (this.inputStart) {
+      const dateIn = new Date(this.dataInizio);
+      dateIn.setDate(dateIn.getDate() + (data && data.start ? data.start : 0));
+      this.inputStart.nativeElement.value = [
+        dateIn.getFullYear(),
+        dateIn.getMonth() + 1,
+        dateIn.getDate(),
+      ].join('-');
+    }
+    if (data && data.duration && this.inputDuration) {
+      this.inputDuration.nativeElement.value = data.duration;
+    }
+
+    if (data && data.color && this.inputColor) {
+      this.inputColor.nativeElement.value = data.color;
+    }
   }
 
-  /* ------------- FUNCTIONS ----------------- */
-  public diagramTaskModelChange = (
-    changes: go.IncrementalData,
-    appComp: GanttComponent
-  ) => {
-    if (!changes) return;
-    // const appComp = this;
-    this.state = produce(appComp.state, (draft: any) => {
-      // set skipsDiagramUpdate: true since GoJS already has this update
-      // this way, we don't log an unneeded transaction in the Diagram's undoManager history
-      draft.skipsDiagramUpdate = true;
-      draft.diagramNodeData = DataSyncService.syncNodeData(
-        changes,
-        draft.diagramNodeData,
-        appComp.observedDiagramTask.model
+  override saveModel() {
+    // console.log(this.modalShared.getData());
+    const dataSelected: GanttModel = this.modalShared.getDataDetail();
+    let modelSave: GanttModel;
+    if (dataSelected) {
+      modelSave = this.getModelByForm();
+
+      this.template.task.model.commit((m: any) => {
+        m.addNodeData(modelSave);
+        m.addLinkData({ from: dataSelected.key, to: modelSave.key });
+        this.template.task.select(
+          this.template.task.findNodeForData(modelSave)
+        );
+      });
+    }
+  }
+
+  override updateModel() {
+    const modelSave = this.getModelByForm();
+    modelSave.key = (this.dataUpdateFromEvent as GanttModel).key;
+
+    this.template.task.model.commit((m: any) => {
+      const nodeModel = m.findNodeDataForKey(
+        (this.dataUpdateFromEvent as GanttModel).key
       );
-      draft.diagramLinkData = DataSyncService.syncLinkData(
-        changes,
-        draft.diagramLinkData,
-        appComp.observedDiagramTask.model
-      );
-      draft.diagramModelData = DataSyncService.syncModelData(
-        changes,
-        draft.diagramModelData
-      );
-      // If one of the modified nodes was the selected node used by the inspector, update the inspector selectedNodeData object
-      const modifiedNodeDatas = changes.modifiedNodeData;
-      if (modifiedNodeDatas && draft.selectedNodeData) {
-        for (let i = 0; i < modifiedNodeDatas.length; i++) {
-          const mn = modifiedNodeDatas[i];
-          const nodeKeyProperty = appComp.myTaskComponent?.diagram.model
-            .nodeKeyProperty as string;
-          if (mn[nodeKeyProperty] === draft.selectedNodeData[nodeKeyProperty]) {
-            draft.selectedNodeData = mn;
-          }
-        }
-      }
+      m.assignAllDataProperties(nodeModel, modelSave);
+      this.template.task.select(this.template.task.findNodeForData(modelSave));
     });
-  };
-
-  public diagramGanttModelChange = (
-    changes: go.IncrementalData,
-    appComp: GanttComponent
-  ) => {
-    if (!changes) return;
-    // const appComp = this;
-    this.state = produce(appComp.state, (draft: any) => {
-      // set skipsDiagramUpdate: true since GoJS already has this update
-      // this way, we don't log an unneeded transaction in the Diagram's undoManager history
-      draft.skipsDiagramUpdate = true;
-      draft.diagramNodeData = DataSyncService.syncNodeData(
-        changes,
-        draft.diagramNodeData,
-        appComp.observedDiagramGantt.model
-      );
-      draft.diagramLinkData = DataSyncService.syncLinkData(
-        changes,
-        draft.diagramLinkData,
-        appComp.observedDiagramGantt.model
-      );
-      draft.diagramModelData = DataSyncService.syncModelData(
-        changes,
-        draft.diagramModelData
-      );
-      // If one of the modified nodes was the selected node used by the inspector, update the inspector selectedNodeData object
-      const modifiedNodeDatas = changes.modifiedNodeData;
-      if (modifiedNodeDatas && draft.selectedNodeData) {
-        for (let i = 0; i < modifiedNodeDatas.length; i++) {
-          const mn = modifiedNodeDatas[i];
-          const nodeKeyProperty = appComp.myGanttComponent?.diagram.model
-            .nodeKeyProperty as string;
-          if (mn[nodeKeyProperty] === draft.selectedNodeData[nodeKeyProperty]) {
-            draft.selectedNodeData = mn;
-          }
-        }
-      }
-    });
-  };
-
-  afterChildTaskFn() {
-    if (this.observedDiagramTask) return;
-    this.observedDiagramTask = this.myTaskComponent?.diagram;
-    this.getCdr().detectChanges(); // IMPORTANT: without this, Angular will throw ExpressionChangedAfterItHasBeenCheckedError (dev mode only)
-
-    const appComp: DiagramBaseComponent = this;
-    // listener for inspector
-    this.myTaskComponent?.diagram.addDiagramListener(
-      'ChangedSelection',
-      function (e) {
-        if (e.diagram.selection.count === 0) {
-          appComp.selectedNodeData = null;
-        }
-        const node = e.diagram.selection.first();
-        appComp.state = produce(appComp.state, (draft: any) => {
-          if (node instanceof go.Node) {
-            var idx = draft.diagramNodeData.findIndex(
-              (nd: any) => nd.id == node.data.id
-            );
-            var nd = draft.diagramNodeData[idx];
-            draft.selectedNodeData = nd;
-          } else {
-            draft.selectedNodeData = null;
-          }
-        });
-      }
-    );
   }
 
-  afterChildGanttFn() {
-    if (this.observedDiagramGantt) return;
-    this.observedDiagramGantt = this.myGanttComponent?.diagram;
-    this.getCdr().detectChanges(); // IMPORTANT: without this, Angular will throw ExpressionChangedAfterItHasBeenCheckedError (dev mode only)
-
-    const appComp: DiagramBaseComponent = this;
-    // listener for inspector
-    this.myGanttComponent?.diagram.addDiagramListener(
-      'ChangedSelection',
-      function (e) {
-        if (e.diagram.selection.count === 0) {
-          appComp.selectedNodeData = null;
-        }
-        const node = e.diagram.selection.first();
-        appComp.state = produce(appComp.state, (draft: any) => {
-          if (node instanceof go.Node) {
-            var idx = draft.diagramNodeData.findIndex(
-              (nd: any) => nd.id == node.data.id
-            );
-            var nd = draft.diagramNodeData[idx];
-            draft.selectedNodeData = nd;
-          } else {
-            draft.selectedNodeData = null;
-          }
-        });
-      }
+  override getModelByForm(): GanttModel {
+    const modelSave: GanttModel = {
+      key: undefined,
+      text: this.inputName.nativeElement.value,
+      color: this.inputColor.nativeElement.value,
+    };
+    const dataScelta = new Date(this.inputStart.nativeElement.value);
+    if (
+      dataScelta.getFullYear() === this.dataInizio.getFullYear() &&
+      dataScelta.getMonth() === this.dataInizio.getMonth() &&
+      dataScelta.getDate() === this.dataInizio.getDate()
+    ) {
+      modelSave.start = 0;
+    } else {
+      const data1 = new Date(
+        [
+          dataScelta.getFullYear(),
+          dataScelta.getMonth(),
+          dataScelta.getDate(),
+        ].join('-')
+      );
+      const data2 = new Date(
+        [
+          this.dataInizio.getFullYear(),
+          this.dataInizio.getMonth(),
+          this.dataInizio.getDate(),
+        ].join('-')
+      );
+      const diff = (data1.getTime() - data2.getTime()) / (1000 * 3600 * 24);
+      modelSave.start = diff;
+    }
+    modelSave.duration = GanttUtility.convertDaysToUnits(
+      +this.inputDuration.nativeElement.value
     );
+
+    return modelSave;
+  }
+
+  // ------ overrides
+  override download(filename?: string | undefined): void {
+    if (this.diagramModel && this.diagramModel.filenames) {
+      var blob1 = this.template.task.makeImageData({
+        background: 'white',
+        returnType: 'blob',
+        callback: (val: any) =>
+          this.makeBlobCallback(val, (this.diagramModel as any).filenames[0]),
+      });
+
+      var blob2 = this.template.gantt.makeImageData({
+        background: 'white',
+        returnType: 'blob',
+        callback: (val: any) =>
+          this.makeBlobCallback(val, (this.diagramModel as any).filenames[1]),
+      });
+    }
+  }
+
+  // ---- utils
+  private formatDate(date: Date): string {
+    var d = new Date(date),
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+  }
+
+  saveNodeExample() {
+    this.template.task.model.commit((m: any) => {
+      const newdata = {
+        key: undefined,
+        text: 'New Task',
+        color: 'red',
+        duration: GanttUtility.convertDaysToUnits(5),
+      };
+      m.addNodeData(newdata);
+      m.addLinkData({ from: 'n0', to: newdata.key });
+      this.template.task.select(this.template.task.findNodeForData(newdata));
+    });
   }
 }

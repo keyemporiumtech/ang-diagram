@@ -10,11 +10,13 @@ import { DiagramHomeComponent } from './pages/diagram-home/diagram-home.componen
 import { OrgTreeComponent } from './components/org-tree/org-tree.component';
 import { KanbanBoardComponent } from './components/kanban-board/kanban-board.component';
 import { GanttComponent } from './components/gantt/gantt.component';
+import { SharedModalComponent } from './components/shared-modal/shared-modal.component';
 
 @NgModule({
   declarations: [
     DiagramHomeComponent,
     DiagramPageComponent,
+    SharedModalComponent,
     FamilyTreeComponent,
     OrgTreeComponent,
     KanbanBoardComponent,
@@ -30,6 +32,7 @@ import { GanttComponent } from './components/gantt/gantt.component';
   exports: [
     DiagramHomeComponent,
     DiagramPageComponent,
+    SharedModalComponent,
     FamilyTreeComponent,
     OrgTreeComponent,
     KanbanBoardComponent,

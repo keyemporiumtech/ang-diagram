@@ -20,4 +20,5 @@ export interface StateLinkModel {
   size?: number;
   arrowColor?: string;
   arrowSize?: number;
+  category?: string;
 }

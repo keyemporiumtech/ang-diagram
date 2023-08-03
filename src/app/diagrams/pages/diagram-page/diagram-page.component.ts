@@ -24,14 +24,11 @@ import { GiuseppeOrg } from '../../builder/org-tree/datas/giuseppe-org';
 import { OrgTreeTemplate } from '../../builder/org-tree/org-tree.template';
 import { EnumKanbanBoardData } from '../../builder/kanban-board/kanban-board-data.enum';
 import { GenericKanban } from '../../builder/kanban-board/datas/generic-kanban';
-import {
-  KanbanBoardProperties,
-  KanbanBoardTemplate,
-} from '../../builder/kanban-board/kanban-board.template';
 import { EnumGanttData } from '../../builder/gantt/gantt-data.enum';
+import { ObjDiagramModel } from '../../../shared/model/obj-diagram.model';
 import { GenericGantt } from '../../builder/gantt/datas/generic-gantt';
-import { GanttTemplate } from '../../builder/gantt/gantt.template';
-import { GanttComponent } from '../../components/gantt/gantt.component';
+import { GanttProperties } from '../../builder/gantt/properties/gantt.properties';
+import { KanbanProperties } from '../../builder/kanban-board/properties/kanban.properties';
 
 @Component({
   selector: 'app-diagram-page',
@@ -40,9 +37,11 @@ import { GanttComponent } from '../../components/gantt/gantt.component';
   encapsulation: ViewEncapsulation.None,
 })
 export class DiagramPageComponent implements OnInit, AfterViewInit {
+  objModel: ObjDiagramModel;
+  objProperties: any;
+
   data: ObjStateModel = {};
   pageModel: DiagramPageModel | any = {};
-  filename: string | undefined;
   diagram: Diagram | undefined;
   diagrams: Diagram[] | undefined;
   title: string = '';
@@ -50,10 +49,11 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
 
   EnumDiagramPage = EnumDiagramPage;
   @ViewChild('cmpDiagram') cmpDiagram: DiagramBaseComponent;
-  @ViewChild('cmpGantt') cmpGantt: GanttComponent;
   @ViewChild('textJson') textJson: ElementRef;
 
-  constructor(private location: Location) {}
+  constructor(private location: Location) {
+    this.objModel = new ObjDiagramModel();
+  }
 
   ngOnInit() {
     this.pageModel = this.location.getState();
@@ -61,62 +61,25 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
     this.loadPage();
   }
 
-  ngAfterViewInit(): void {
-    if (
-      this.cmpDiagram &&
-      this.cmpDiagram.myDiagramComponent &&
-      this.cmpDiagram.myDiagramComponent.diagram &&
-      this.diagram
-    ) {
-      this.cmpDiagram.myDiagramComponent.diagram = this.diagram;
-    }
+  ngAfterViewInit(): void {}
 
-    // gantt
-    if (
-      this.cmpGantt &&
-      this.cmpGantt.myTaskComponent &&
-      this.cmpGantt.myTaskComponent.diagram &&
-      this.diagrams
-    ) {
-      this.cmpGantt.myTaskComponent.diagram = this.diagrams[0];
-    }
-    if (
-      this.cmpGantt &&
-      this.cmpGantt.myGanttComponent &&
-      this.cmpGantt.myGanttComponent.diagram &&
-      this.diagrams
-    ) {
-      this.cmpGantt.myGanttComponent.diagram = this.diagrams[1];
+  download() {
+    if (this.cmpDiagram) {
+      this.cmpDiagram.download();
     }
   }
-
   saveJson() {
-    if (
-      this.cmpDiagram &&
-      this.cmpDiagram.myDiagramComponent &&
-      this.cmpDiagram.myDiagramComponent.diagram
-    ) {
-      this.textJson.nativeElement.value = JSON.stringify(
-        this.cmpDiagram.state,
-        null,
-        4
-      );
+    if (this.cmpDiagram) {
+      this.textJson.nativeElement.value = this.cmpDiagram.getJsonString();
     }
   }
 
   loadJson() {
-    if (
-      this.cmpDiagram &&
-      this.cmpDiagram.myDiagramComponent &&
-      this.cmpDiagram.myDiagramComponent.diagram
-    ) {
+    if (this.cmpDiagram) {
       this.pageModel.page = null;
       const data = JSON.parse(this.textJson.nativeElement.value);
 
-      const newData: ObjStateModel = {};
-      newData.diagramNodeData = data.diagramNodeData;
-      newData.diagramLinkData = data.diagramLinkData;
-      this.data = newData;
+      this.cmpDiagram.loadJson(data);
 
       setTimeout(() => {
         this.pageModel.page = this.currentPage;
@@ -146,7 +109,7 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
     if (this.pageModel.data === EnumFamilyTreeData.GIUSEPPE) {
       this.data.diagramNodeData = GiuseppeFamily.makeData();
       this.data.diagramLinkData = GiuseppeFamily.makeLink();
-      this.filename = 'GiuseppeFamily.png';
+      // this.filename = 'GiuseppeFamily.png';
 
       const propertiesTemplate: FamilyTreeProperties = {
         typeShape: EnumFigureType.ARROTONDATO,
@@ -160,7 +123,7 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
     if (this.pageModel.data === EnumOrgTreeData.GIUSEPPE) {
       this.data.diagramNodeData = GiuseppeOrg.makeData();
       this.data.diagramLinkData = GiuseppeOrg.makeLink();
-      this.filename = 'GiuseppeOrg.png';
+      // this.filename = 'GiuseppeOrg.png';
       this.diagram = OrgTreeTemplate.makeTemplate();
       this.title = 'Organizzazione di Giuseppe';
     }
@@ -168,30 +131,46 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
 
   private loadKanban() {
     if (this.pageModel.data === EnumKanbanBoardData.GENERIC) {
-      this.data.diagramNodeData = GenericKanban.makeData();
-      this.data.diagramLinkData = GenericKanban.makeLink();
-      this.filename = 'GenericKanban.png';
+      this.objModel.filename = 'GenericKanban.png';
+      const stateModel: ObjStateModel = {
+        diagramNodeData: GenericKanban.makeData(),
+        diagramLinkData: GenericKanban.makeLink(),
+      };
+      this.objModel.state = stateModel;
+      this.objModel.title = 'Kanban Generico';
+      this.objModel.divId = 'myKanbanId';
 
-      const propertiesTemplate: KanbanBoardProperties = {
+      // properties
+      const properties: KanbanProperties = {
         shapeGroup: { type: EnumFigureType.ARROTONDATO },
         textStatusCOMPLETE: { color: 'green' },
       };
-
-      this.diagram = KanbanBoardTemplate.makeTemplate(propertiesTemplate);
-      this.title = 'Kanban Generico';
+      this.objProperties = properties;
     }
   }
 
   private loadGantt() {
     if (this.pageModel.data === EnumGanttData.GENERIC) {
-      this.data.diagramNodeData = GenericGantt.makeData();
-      this.data.diagramLinkData = GenericGantt.makeLink();
-      this.filename = 'GenericGantt.png';
+      this.objModel.filenames = ['MyTask.png', 'MyGantt.png'];
+      const stateModel: ObjStateModel = {
+        diagramModelData: {
+          origin: new Date('1995-12-17T03:24:00'),
+        },
+        diagramNodeData: GenericGantt.makeData(),
+        diagramLinkData: GenericGantt.makeLink(),
+      };
+      this.objModel.state = stateModel;
+      this.objModel.title = 'Gantt Generico';
 
-      const templatesGantt = GanttTemplate.makeTemplate();
-      this.diagrams = [templatesGantt.task, templatesGantt.gantt];
-
-      this.title = 'Gantt Generico';
+      // properties
+      const properties: GanttProperties = {
+        startDate: new Date('1995-12-17T03:24:00'),
+      };
+      this.objProperties = properties;
     }
+  }
+
+  convertDaysToUnits(n: any) {
+    return n;
   }
 }

@@ -9,23 +9,31 @@ export class GenericGantt {
     const n1: GanttModel = {
       key: 'n1',
       text: 'Task 1',
-      color: 'yellow',
+      color: '#F1E904',
     };
 
     const n11: GanttModel = {
       key: 'n11',
       text: 'Task 1.1',
-      color: 'green',
+      color: '#39C31D',
       duration: 7,
     };
+    const n2: GanttModel = {
+      key: 'n2',
+      text: 'Task 2',
+      color: '#ff0000',
+      start: 7,
+      duration: 15,
+    };
 
-    return [n0, n1, n11];
+    return [n0, n1, n11, n2];
   }
 
   static makeLink() {
     return [
       { from: 'n0', to: 'n1' },
       { from: 'n1', to: 'n11' },
+      { from: 'n0', to: 'n2' },
     ];
   }
 }

@@ -2,120 +2,120 @@ import * as go from 'gojs';
 import produce from 'immer';
 import {
   AfterViewInit,
-  ChangeDetectorRef,
   Directive,
   Input,
   OnInit,
   ViewChild,
 } from '@angular/core';
-import {
-  DataSyncService,
-  DiagramComponent,
-  PaletteComponent,
-} from 'gojs-angular';
 import { ObjStateModel } from '../../shared/model/obj-state.model';
+import { ObjDiagramModel } from '../../shared/model/obj-diagram.model';
+import { SharedModalComponent } from '../components/shared-modal/shared-modal.component';
 
 @Directive()
 export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
-  private _state: ObjStateModel | any;
-  @Input() set state(val: ObjStateModel | any) {
-    this._state = val;
-    this.cdr.markForCheck();
+  // --------------- MANAGE DIAGRAM
+  private _diagramModel: ObjDiagramModel;
+  @Input() set diagramModel(val: ObjDiagramModel) {
+    this._diagramModel = val;
+    this.setModel(val);
   }
-  get state(): ObjStateModel | any {
-    return this._state;
+  get diagramModel(): ObjDiagramModel {
+    return this._diagramModel;
   }
-  @Input() title: string | undefined = '';
-  @Input() flgInspector: boolean | undefined = false;
-  @Input() flgPalette: boolean | undefined = false;
-  @Input() flgOverview: boolean | undefined = false;
-  @Input() flgInfo: boolean | undefined = false;
-  @Input() nodeOrientation: 'Auto' | 'Vertical' | 'Horizontal' | undefined =
-    'Horizontal';
+  @Input() diagramProperties: any;
+  @Input() divId: string = '';
 
-  @ViewChild('myDiagram', { static: true })
-  public myDiagramComponent: DiagramComponent | undefined;
-  @ViewChild('myPalette', { static: true })
-  public myPaletteComponent: PaletteComponent | any;
+  title: string = '';
+  state: ObjStateModel;
+  diagram: go.Diagram;
 
-  // Big object that holds app-level state data
-  // As of gojs-angular 2.0, immutability is expected and required of state for ease of change detection.
-  // Whenever updating state, immutability must be preserved. It is recommended to use immer for this, a small package that makes working with immutable data easy.
+  // ------------------- MANAGE MODAL BUTTONS
+  @ViewChild('modalShared') modalShared: SharedModalComponent;
+  dataDetailFromEvent: any;
+  dataUpdateFromEvent: any;
 
-  public diagramDivClassName: string = 'myDiagramDiv';
-  public paletteDivClassName = 'myPaletteDiv';
+  ngAfterViewInit(): void {}
+  ngOnInit(): void {}
 
-  // Overview Component testing
-  public oDivClassName = 'myOverviewDiv';
-  public diagramWidth: string = '50%';
-  public diagramHeight: string = '70vh';
-
-  public observedDiagram: any | null = null;
-
-  // currently selected node; for inspector
-  public selectedNodeData: go.ObjectData | null = null;
-
-  constructor(private cdr: ChangeDetectorRef) {}
-
-  ngOnInit() {
-    let cntW = 0;
-    if (this.flgPalette) {
-      cntW++;
+  setModel(diagramModel: ObjDiagramModel) {
+    if (diagramModel) {
+      this.state = diagramModel.state;
+      this.title = diagramModel.title;
+      this.divId = diagramModel.divId;
     }
-    if (this.flgOverview) {
-      cntW++;
-    }
-    if (this.flgInspector) {
-      cntW++;
-    }
-
-    switch (cntW) {
-      case 0:
-        this.diagramWidth = '100%';
-        break;
-      case 1:
-        this.diagramWidth = '80%';
-        break;
-      case 2:
-        this.diagramWidth = '60%';
-        break;
-      case 3:
-        this.diagramWidth = '50%';
-        break;
-    }
-
-    this.diagramHeight = this.flgInfo ? '70vh' : '100vh';
   }
 
-  public ngAfterViewInit() {
-    this.afterChildFn();
-    /*
-    setTimeout(() => {
-      this.afterChildFn();
-    }, 1000);
-    */
-  } // end ngAfterViewInit
+  /**
+   * Torna il modello con i nodeDataArray e i nodeLinkArray di input
+   * go.GraphLinksModel or go.TreeModel
+   */
+  abstract getModel(): any;
+  /**
+   * chiamata che intercetta il dato sul nodo di template cliccato
+   * per il dettaglio e il salvataggio in modale (MODALE)
+   * @param data Oggetto del nodo cliccato
+   */
+  abstract keepDataDetailFromEvent(data: any): void;
+  /**
+   * chiamata che intercetta il dato sul nodo di template cliccato
+   * per l'update (MODALE)
+   * @param data Oggetto del nodo cliccato
+   */
+  abstract keepDataUpdateFromEvent(data: any): void;
+  /**
+   * chiamato al click del salvataggio
+   */
+  abstract saveModel(): void;
+  /**
+   * chiamato al click dell'update
+   */
+  abstract updateModel(): void;
+  /**
+   * Ritorna il modello del nodo preso dal form interno del template passato a sharedModel
+   * da usare nei metodi saveModel() e updateModel()
+   */
+  abstract getModelByForm(): any;
 
-  /* ------------- IMPLEMENTATIONS ----------------- */
-  abstract initializeDiagram(): go.Diagram | undefined;
-
-  public initPalette(): go.Palette {
-    const $ = go.GraphObject.make;
-    const palette = $(go.Palette);
-
-    palette.model = $(go.GraphLinksModel);
-    return palette;
+  dataDetailChanged(data: any) {
+    this.dataDetailFromEvent = data;
+    this.keepDataDetailFromEvent(data);
+  }
+  dataUpdateChanged(data: any) {
+    this.dataUpdateFromEvent = data;
+    this.keepDataUpdateFromEvent(data);
+  }
+  saveClick($event: any) {
+    if (this.modalShared) {
+      this.saveModel();
+    }
+  }
+  updateClick($event: any) {
+    if (this.modalShared) {
+      this.updateModel();
+    }
   }
 
-  public initOverview(): go.Overview {
-    const $ = go.GraphObject.make;
-    const overview = $(go.Overview);
-    return overview;
+  // -------------- manage json
+
+  getJson(): ObjStateModel {
+    return this.diagramModel.state;
   }
 
-  /* ------------- OPERATIONS ----------------- */
+  getJsonString(): string {
+    return JSON.stringify(this.getJson(), null, 4);
+  }
 
-  private makeBlobCallback(blob: any, filename: string | undefined) {
+  loadJson(state: ObjStateModel, diagram?: go.Diagram): void {
+    if (!diagram) {
+      diagram = this.diagram;
+    }
+    this.diagramModel.state = state;
+    const model = this.getModel();
+    diagram.model = model;
+  }
+
+  // -------------- download
+  makeBlobCallback(blob: any, filename: string | undefined) {
     if (!filename) {
       filename = 'Graph.png';
     }
@@ -143,120 +143,35 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
   }
 
   download(filename?: string) {
-    var blob = this.myDiagramComponent?.diagram.makeImageData({
+    if (!filename && this.diagramModel && this.diagramModel.filename) {
+      filename = this.diagramModel.filename;
+    }
+    var blob = this.diagram.makeImageData({
       background: 'white',
       returnType: 'blob',
       callback: (val) => this.makeBlobCallback(val, filename),
     });
   }
 
-  zoomFit() {
-    this.myDiagramComponent?.diagram.commandHandler.zoomToFit();
-  }
-
-  center() {
-    (this.myDiagramComponent as any).diagram.scale = 1;
-    this.myDiagramComponent?.diagram?.scrollToRect(
-      (this.myDiagramComponent as any).diagram?.findNodeForKey(0)?.actualBounds
-    );
-  }
-
-  getJson(): string {
-    const json = (this.myDiagramComponent as any).diagram.model.toJson();
-    (this.myDiagramComponent as any).diagram.isModified = false;
-    return json;
-  }
-
-  /* ------------- FUNCTIONS ----------------- */
-  public diagramModelChange = (
-    changes: go.IncrementalData,
-    appComp: DiagramBaseComponent
-  ) => {
-    if (!changes) return;
-    // const appComp = this;
-    this.state = produce(appComp.state, (draft: any) => {
-      // set skipsDiagramUpdate: true since GoJS already has this update
-      // this way, we don't log an unneeded transaction in the Diagram's undoManager history
-      draft.skipsDiagramUpdate = true;
-      draft.diagramNodeData = DataSyncService.syncNodeData(
-        changes,
-        draft.diagramNodeData,
-        appComp.observedDiagram.model
-      );
-      draft.diagramLinkData = DataSyncService.syncLinkData(
-        changes,
-        draft.diagramLinkData,
-        appComp.observedDiagram.model
-      );
-      draft.diagramModelData = DataSyncService.syncModelData(
-        changes,
-        draft.diagramModelData
-      );
-      // If one of the modified nodes was the selected node used by the inspector, update the inspector selectedNodeData object
-      const modifiedNodeDatas = changes.modifiedNodeData;
-      if (modifiedNodeDatas && draft.selectedNodeData) {
-        for (let i = 0; i < modifiedNodeDatas.length; i++) {
-          const mn = modifiedNodeDatas[i];
-          const nodeKeyProperty = appComp.myDiagramComponent?.diagram.model
-            .nodeKeyProperty as string;
-          if (mn[nodeKeyProperty] === draft.selectedNodeData[nodeKeyProperty]) {
-            draft.selectedNodeData = mn;
-          }
-        }
-      }
-    });
-  };
-
-  afterChildFn() {
-    if (this.observedDiagram) return;
-    this.observedDiagram = this.myDiagramComponent?.diagram;
-    this.cdr.detectChanges(); // IMPORTANT: without this, Angular will throw ExpressionChangedAfterItHasBeenCheckedError (dev mode only)
-
-    const appComp: DiagramBaseComponent = this;
-    // listener for inspector
-    this.myDiagramComponent?.diagram.addDiagramListener(
-      'ChangedSelection',
-      function (e) {
-        if (e.diagram.selection.count === 0) {
-          appComp.selectedNodeData = null;
-        }
-        const node = e.diagram.selection.first();
-        appComp.state = produce(appComp.state, (draft: any) => {
-          if (node instanceof go.Node) {
-            var idx = draft.diagramNodeData.findIndex(
-              (nd: any) => nd.id == node.data.id
-            );
-            var nd = draft.diagramNodeData[idx];
-            draft.selectedNodeData = nd;
-          } else {
-            draft.selectedNodeData = null;
-          }
-        });
-      }
-    );
-  }
-  /**
-   * Update a node's data based on some change to an inspector row's input
-   * @param changedPropAndVal An object with 2 entries: "prop" (the node data prop changed), and "newVal" (the value the user entered in the inspector <input>)
-   */
-  public handleInspectorChange(changedPropAndVal: any) {
-    const path = changedPropAndVal.prop;
-    const value = changedPropAndVal.newVal;
-
-    this.state = produce(this.state, (draft: any) => {
-      var data = draft.selectedNodeData;
-      data[path] = value;
-      const key = data.id;
-      const idx = draft.diagramNodeData.findIndex((nd: any) => nd.id == key);
-      if (idx >= 0) {
-        draft.diagramNodeData[idx] = data;
-        draft.skipsDiagramUpdate = false; // we need to sync GoJS data with this new app state, so do not skips Diagram update
-      }
+  // -------------- utility
+  defaultModel(): go.GraphLinksModel {
+    return new go.GraphLinksModel({
+      modelData: this.diagramModel.state.diagramModelData,
+      nodeDataArray: this.diagramModel.state.diagramNodeData,
+      linkDataArray: this.diagramModel.state.diagramLinkData,
     });
   }
 
-  // utils
-  getCdr() {
-    return this.cdr;
+  saveModelCommit(model: any, link?: any, diagram?: go.Diagram) {
+    if (!diagram) {
+      diagram = this.diagram;
+    }
+    diagram.model.commit((m: any) => {
+      m.addNodeData(model);
+      if (link) {
+        m.addLinkData(link);
+      }
+      diagram?.select(diagram.findNodeForData(model));
+    });
   }
 }

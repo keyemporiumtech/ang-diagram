@@ -1,6 +1,5 @@
-<h1>{{ title }}</h1>
+<h1>{{ title }} {{ dataInizio ? dataInizio.toLocaleDateString() : "" }}</h1>
 <div>
-  {{ state.diagramNodeData | json }}
   <hr />
   <div
     style="
@@ -11,32 +10,11 @@
       border: solid 1px black;
     "
   >
-    <div style="width: 20%; margin-right: 2px; border-right: solid 1px black">
-      <gojs-diagram
-        #myTask
-        [initDiagram]="initTask"
-        [divClassName]="'myTaskDiv'"
-        [nodeDataArray]="state.diagramNodeData"
-        [linkDataArray]="state.diagramLinkData"
-        [modelData]="state.diagramModelData"
-        [skipsDiagramUpdate]="state.skipsDiagramUpdate"
-        (modelChange)="diagramTaskModelChange($event, this)"
-      >
-      </gojs-diagram>
-    </div>
-    <div style="flex-grow: 1">
-      <gojs-diagram
-        #myGantt
-        [initDiagram]="initGantt"
-        [divClassName]="'myGanttDiv'"
-        [nodeDataArray]="state.diagramNodeData"
-        [linkDataArray]="state.diagramLinkData"
-        [modelData]="state.diagramModelData"
-        [skipsDiagramUpdate]="state.skipsDiagramUpdate"
-        (modelChange)="diagramGanttModelChange($event, this)"
-      >
-      </gojs-diagram>
-    </div>
+    <div
+      id="{{ divTaskId }}"
+      style="width: 20%; margin-right: 2px; border-right: solid 1px black"
+    ></div>
+    <div id="{{ divGanttId }}" style="flex-grow: 1"></div>
   </div>
   <!--
   <div id="slider">
@@ -51,4 +29,69 @@
     />
   </div>
   -->
+
+  <ng-template #saveNode>
+    <form>
+      <div>
+        <label>Nome task</label>
+        <input
+          #inputName
+          type="text"
+          id="textToSave"
+          name="textToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Data di inizo</label>
+        <input
+          #inputStart
+          type="date"
+          id="startToSave"
+          name="startToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Durata</label>
+        <input
+          #inputDuration
+          type="number"
+          id="durationToSave"
+          name="durationToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Colore</label>
+        <input
+          #inputColor
+          type="color"
+          id="colorToSave"
+          name="colorToSave"
+          [style.margin-left]="'.5rem'"
+        />
+        <ng-container *ngIf="enableSelectColors">
+          <select
+            #selectColor
+            id="preferredColorToSave"
+            name="preferredColorToSave"
+          >
+            <ng-container *ngFor="let color of preferredColors">
+              <option value="{{ color }}">{{ color }}</option>
+            </ng-container>
+          </select>
+        </ng-container>
+      </div>
+    </form>
+  </ng-template>
+
+  <app-shared-modal
+    #modalShared
+    (saveModal)="saveClick($event)"
+    (updateModal)="updateClick($event)"
+    (dataDetailChange)="dataDetailChanged($event)"
+    (dataUpdateChange)="dataUpdateChanged($event)"
+    [saveTemplate]="saveNode"
+  ></app-shared-modal>
 </div>
