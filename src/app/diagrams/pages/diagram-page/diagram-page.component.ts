@@ -14,10 +14,6 @@ import { EnumFamilyTreeData } from '../../builder/family-tree/family-tree-data.e
 import { Location } from '@angular/common';
 import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { Diagram } from 'gojs';
-import {
-  FamilyTreeProperties,
-  FamilyTreeTemplate,
-} from '../../builder/family-tree/family-tree.template';
 import { EnumFigureType } from '../../../shared/enum/figure-type.enum';
 import { EnumOrgTreeData } from '../../builder/org-tree/org-tree-data.enum';
 import { GiuseppeOrg } from '../../builder/org-tree/datas/giuseppe-org';
@@ -29,6 +25,9 @@ import { ObjDiagramModel } from '../../../shared/model/obj-diagram.model';
 import { GenericGantt } from '../../builder/gantt/datas/generic-gantt';
 import { GanttProperties } from '../../builder/gantt/properties/gantt.properties';
 import { KanbanProperties } from '../../builder/kanban-board/properties/kanban.properties';
+import { FamilyTreeProperties } from '../../builder/family-tree/properties/family-tree-properties';
+import { OrgTreeProperties } from '../../builder/org-tree/properties/org-tree.properties';
+import { SGP20Kanban } from '../../builder/kanban-board/datas/sgp-2.0';
 
 @Component({
   selector: 'app-diagram-page',
@@ -107,25 +106,39 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
 
   private loadFamily() {
     if (this.pageModel.data === EnumFamilyTreeData.GIUSEPPE) {
-      this.data.diagramNodeData = GiuseppeFamily.makeData();
-      this.data.diagramLinkData = GiuseppeFamily.makeLink();
-      // this.filename = 'GiuseppeFamily.png';
+      this.objModel.filename = 'GiuseppeFamily.png';
+      const stateModel: ObjStateModel = {
+        diagramNodeData: GiuseppeFamily.makeData(),
+        diagramLinkData: GiuseppeFamily.makeLink(),
+      };
+      this.objModel.state = stateModel;
+      this.objModel.title = 'Famiglia di Giuseppe';
+      this.objModel.divId = 'myFamilyId';
 
-      const propertiesTemplate: FamilyTreeProperties = {
+      // properties
+      const properties: FamilyTreeProperties = {
         typeShape: EnumFigureType.ARROTONDATO,
       };
-      this.diagram = FamilyTreeTemplate.makeTemplate(propertiesTemplate);
-      this.title = 'Famiglia di Giuseppe';
+      this.objProperties = properties;
     }
   }
 
   private loadOrg() {
     if (this.pageModel.data === EnumOrgTreeData.GIUSEPPE) {
-      this.data.diagramNodeData = GiuseppeOrg.makeData();
-      this.data.diagramLinkData = GiuseppeOrg.makeLink();
-      // this.filename = 'GiuseppeOrg.png';
-      this.diagram = OrgTreeTemplate.makeTemplate();
-      this.title = 'Organizzazione di Giuseppe';
+      this.objModel.filename = 'GiuseppeOrg.png';
+      const stateModel: ObjStateModel = {
+        diagramNodeData: GiuseppeOrg.makeData(),
+        diagramLinkData: GiuseppeOrg.makeLink(),
+      };
+      this.objModel.state = stateModel;
+      this.objModel.title = 'Organizzazione di Giuseppe';
+      this.objModel.divId = 'myOrgId';
+
+      // properties
+      const properties: OrgTreeProperties = {
+        shape: { type: EnumFigureType.ARROTONDATO },
+      };
+      this.objProperties = properties;
     }
   }
 
@@ -138,6 +151,23 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
       };
       this.objModel.state = stateModel;
       this.objModel.title = 'Kanban Generico';
+      this.objModel.divId = 'myKanbanId';
+
+      // properties
+      const properties: KanbanProperties = {
+        shapeGroup: { type: EnumFigureType.ARROTONDATO },
+        textStatusCOMPLETE: { color: 'green' },
+      };
+      this.objProperties = properties;
+    }
+    if (this.pageModel.data === EnumKanbanBoardData.SGP_2_0) {
+      this.objModel.filename = 'SGP_2.0.png';
+      const stateModel: ObjStateModel = {
+        diagramNodeData: SGP20Kanban.makeData(),
+        diagramLinkData: SGP20Kanban.makeLink(),
+      };
+      this.objModel.state = stateModel;
+      this.objModel.title = 'Kanban SGP 2.0';
       this.objModel.divId = 'myKanbanId';
 
       // properties
@@ -168,9 +198,5 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
       };
       this.objProperties = properties;
     }
-  }
-
-  convertDaysToUnits(n: any) {
-    return n;
   }
 }

@@ -55,36 +55,106 @@ export class KanbanUtility {
     grp.isHighlighted = false;
   }
 
+  static makeTooltip(): any {
+    const $ = go.GraphObject.make;
+    return $(
+      'ToolTip',
+      { 'Border.fill': 'whitesmoke', 'Border.stroke': 'black' },
+      $(
+        go.Panel,
+        'Table',
+        $(
+          go.TextBlock,
+          {
+            font: 'bold 10pt Helvetica, bold Arial, sans-serif',
+            wrap: go.TextBlock.WrapFit,
+            margin: 5,
+            row: 0,
+          },
+          new go.Binding('text', '', KanbanUtility.textTooltipConvert)
+        ),
+        $(
+          go.TextBlock,
+          {
+            font: 'bold 8pt Helvetica, bold Arial, sans-serif',
+            wrap: go.TextBlock.WrapFit,
+            margin: 5,
+            row: 1,
+          },
+          new go.Binding('text', '', KanbanUtility.textPersonsTooltip)
+        )
+      )
+    );
+  }
+
+  static textGroupConvert(data: KanbanModel) {
+    let str = data.text;
+    if (data.percent !== undefined) {
+      str += ' (' + data.percent + '%)';
+    }
+    return str;
+  }
+
+  static textConvert(data: KanbanModel) {
+    let str = '';
+    if (data.percent !== undefined) {
+      str += '\nAvanzamento:' + data.percent + '%';
+    }
+    if (data.start) {
+      str += '\nInizio:' + data.start;
+    }
+    if (data.end) {
+      str += '\nFine:' + data.end;
+    }
+    return str;
+  }
+
+  static textTooltipConvert(data: KanbanModel) {
+    let str = 'Task: ' + data.text;
+    if (data.percent !== undefined) {
+      str += ' (' + data.percent + '%)';
+    }
+    return str;
+  }
+
+  static textPersonsTooltip(data: KanbanModel) {
+    let str = '';
+    if (data && data.persons && data.persons.length) {
+      data.persons.forEach((person) => {
+        str += '\n' + person;
+      });
+    }
+    return str;
+  }
+
   static standardContextMenus() {
     const $ = go.GraphObject.make;
-    return {
-      contextMenu: $(
-        'ContextMenu',
-        $('ContextMenuButton', $(go.TextBlock, 'Details...'), {
-          click: (e, button) => {
-            const task = (button.part as any).adornedPart;
-            KanbanUtility.contentDetail(task.data);
-            ModalUtility.openModal();
-          },
-        }),
-        $('ContextMenuButton', $(go.TextBlock, 'New Task'), {
-          click: (e, button) => {
-            const task = (button.part as any).adornedPart;
+    return $(
+      'ContextMenu',
+      $('ContextMenuButton', $(go.TextBlock, 'Details...'), {
+        click: (e, button) => {
+          const task = (button.part as any).adornedPart;
+          KanbanUtility.contentDetail(task.data);
+          ModalUtility.openModal();
+        },
+      }),
+      $('ContextMenuButton', $(go.TextBlock, 'New Task'), {
+        click: (e, button) => {
+          const task = (button.part as any).adornedPart;
 
-            KanbanUtility.contentSave(task.data);
-            ModalUtility.openModal();
-          },
-        }),
-        $('ContextMenuButton', $(go.TextBlock, 'Edit'), {
-          click: (e, button) => {
-            const task = (button.part as any).adornedPart;
+          KanbanUtility.contentSave(task.data);
+          ModalUtility.openModal();
+        },
+      }),
+      $('ContextMenuButton', $(go.TextBlock, 'Edit'), {
+        click: (e, button) => {
+          const task = (button.part as any).adornedPart;
 
-            KanbanUtility.contentUpdate(task.data);
-            ModalUtility.openModal();
-          },
-        })
-      ),
-    };
+          KanbanUtility.contentUpdate(task.data);
+          ModalUtility.openModal();
+        },
+      })
+    );
   }
 
   static contentDetail(data: KanbanModel) {
@@ -124,7 +194,7 @@ export class KanbanUtility {
   }
 
   static contentSave(data: KanbanModel) {
-    ModalUtility.setDataUpdate(data);
+    ModalUtility.setDataDetail(data);
     ModalUtility.showSave();
     ModalUtility.hideUpdate();
     ModalUtility.setEditing();

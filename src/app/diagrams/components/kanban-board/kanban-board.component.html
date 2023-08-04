@@ -17,10 +17,83 @@
     ></div>
   </div>
 
-  <ng-template #saveNode> ciao </ng-template>
+  <ng-template #saveNode>
+    <form>
+      <div>
+        <label>Titolo</label>
+        <input
+          #inputTitle
+          type="text"
+          id="textToSave"
+          name="textToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Data di inizo</label>
+        <input
+          #inputStart
+          type="date"
+          id="startToSave"
+          name="startToSave"
+          class="form-control"
+          (change)="calcDurationForm()"
+        />
+      </div>
+      <div>
+        <label>Data di fine</label>
+        <input
+          #inputEnd
+          type="date"
+          id="endToSave"
+          name="endToSave"
+          class="form-control"
+          (change)="calcDurationForm()"
+        />
+      </div>
+      <div>
+        <label>Durata</label>
+        <input
+          #inputDuration
+          type="number"
+          id="durationToSave"
+          name="durationToSave"
+          class="form-control"
+          disabled="true"
+        />
+      </div>
+      <div>
+        <label>Stato</label>
+        <select
+          #selectStatus
+          type="color"
+          id="statusToSave"
+          name="statusToSave"
+          [style.margin-left]="'.5rem'"
+        >
+          <option value="0">ND</option>
+          <option value="1">FERMO</option>
+          <option value="2">IN CORSO</option>
+          <option value="3">COMPLETATO</option>
+        </select>
+      </div>
+      <div>
+        <label>Percentuale di avanzamento</label>
+        <input
+          #inputPercent
+          type="number"
+          step="any"
+          id="percentToSave"
+          name="percentToSave"
+          class="form-control"
+        />
+      </div>
+    </form>
+  </ng-template>
   <app-shared-modal
     #modalShared
     (saveModal)="saveClick($event)"
+    (updateModal)="updateClick($event)"
     (dataDetailChange)="dataDetailChanged($event)"
     (dataUpdateChange)="dataUpdateChanged($event)"
     [saveTemplate]="saveNode"

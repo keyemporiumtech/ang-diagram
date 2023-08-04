@@ -31,9 +31,9 @@ export class GenericGantt {
 
   static makeLink() {
     return [
-      { from: 'n0', to: 'n1' },
-      { from: 'n1', to: 'n11' },
-      { from: 'n0', to: 'n2' },
+      { key: 'n0n1', from: 'n0', to: 'n1' },
+      { key: 'n1n11', from: 'n1', to: 'n11' },
+      { key: 'n0n2', from: 'n0', to: 'n2' },
     ];
   }
 }

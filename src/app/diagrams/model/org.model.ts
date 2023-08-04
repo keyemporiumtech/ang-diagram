@@ -4,6 +4,7 @@ export interface OrgModel extends StateNodeModel {
   key: number | string;
   parent?: number | string;
   name: string;
-  title: string;
+  role: string;
   pic: string;
+  matricola?: string;
 }

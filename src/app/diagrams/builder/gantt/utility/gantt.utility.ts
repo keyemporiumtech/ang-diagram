@@ -92,36 +92,34 @@ export class GanttUtility {
       GanttUtility.TREEWIDTH - taskHeader.actualBounds.x;
   }
 
-  static standardContextMenus() {
+  static standardContextMenus(): any {
     const $ = go.GraphObject.make;
-    return {
-      contextMenu: $(
-        'ContextMenu',
-        $('ContextMenuButton', $(go.TextBlock, 'Details...'), {
-          click: (e, button) => {
-            const task = (button.part as any).adornedPart;
-            GanttUtility.contentDetail(task.data);
-            ModalUtility.openModal();
-          },
-        }),
-        $('ContextMenuButton', $(go.TextBlock, 'New Task'), {
-          click: (e, button) => {
-            const task = (button.part as any).adornedPart;
+    return $(
+      'ContextMenu',
+      $('ContextMenuButton', $(go.TextBlock, 'Details...'), {
+        click: (e, button) => {
+          const task = (button.part as any).adornedPart;
+          GanttUtility.contentDetail(task.data);
+          ModalUtility.openModal();
+        },
+      }),
+      $('ContextMenuButton', $(go.TextBlock, 'New Task'), {
+        click: (e, button) => {
+          const task = (button.part as any).adornedPart;
 
-            GanttUtility.contentSave(task.data);
-            ModalUtility.openModal();
-          },
-        }),
-        $('ContextMenuButton', $(go.TextBlock, 'Edit'), {
-          click: (e, button) => {
-            const task = (button.part as any).adornedPart;
+          GanttUtility.contentSave(task.data);
+          ModalUtility.openModal();
+        },
+      }),
+      $('ContextMenuButton', $(go.TextBlock, 'Edit'), {
+        click: (e, button) => {
+          const task = (button.part as any).adornedPart;
 
-            GanttUtility.contentUpdate(task.data);
-            ModalUtility.openModal();
-          },
-        })
-      ),
-    };
+          GanttUtility.contentUpdate(task.data);
+          ModalUtility.openModal();
+        },
+      })
+    );
   }
 
   static contentDetail(data: GanttModel) {

@@ -4,22 +4,33 @@ import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { OrgTreeTemplate } from '../../builder/org-tree/org-tree.template';
 import { ObjStateModel } from '../../../shared/model/obj-state.model';
 import { DiagramAngBaseComponent } from '../../abstract/diagram-ang-base.component';
+import { OrgModel } from '../../model/org.model';
 
 @Component({
   selector: 'app-org-tree',
   templateUrl: './org-tree.component.html',
   styleUrls: ['./org-tree.component.scss'],
 })
-export class OrgTreeComponent extends DiagramAngBaseComponent {
-  constructor(cdr: ChangeDetectorRef) {
-    super(cdr);
+export class OrgTreeComponent extends DiagramBaseComponent {
+  constructor() {
+    super();
   }
 
-  override ngOnInit(): void {
-    super.ngOnInit();
+  override ngAfterViewInit(): void {
+    setTimeout(() => {
+      const myModel = this.getModel();
+      this.diagram = OrgTreeTemplate.make(this.divId, this.diagramProperties);
+      this.diagram.model = myModel;
+    }, 1000);
   }
 
-  override initializeDiagram() {
-    return OrgTreeTemplate.makeTemplate();
+  override getModel(): go.GraphLinksModel {
+    return this.defaultModel();
   }
+
+  override keepDataDetailFromEvent(data: OrgModel): void {}
+  override keepDataUpdateFromEvent(data: OrgModel): void {}
+  override saveModel(): void {}
+  override updateModel(): void {}
+  override getModelByForm(): void {}
 }

@@ -9,7 +9,11 @@ export class KanbanBoardTemplate {
     KanbanPropertiesMaker.setValues(properties);
 
     const myDiagram = this.makeDiagram(divDiagramId);
+
     myDiagram.layout = new PoolLayout(myDiagram);
+
+    myDiagram.nodeTemplate.contextMenu = KanbanUtility.standardContextMenus();
+    myDiagram.nodeTemplate.toolTip = KanbanUtility.makeTooltip();
 
     // Customize the dragging tool:
     // When dragging a node set its opacity to 0.6 and move it to be in front of other nodes
@@ -60,7 +64,7 @@ export class KanbanBoardTemplate {
       new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(
         go.Point.stringify
       ),
-      KanbanUtility.standardContextMenus(),
+      // KanbanUtility.standardContextMenus(),
       $(
         go.Shape,
         (KanbanUtility.shapeGroup as any).type,
@@ -99,13 +103,28 @@ export class KanbanBoardTemplate {
             {
               name: 'TEXT',
               margin: 6,
+              font: 'bold 12px Lato, bold sans-serif',
+              editable: true,
+              stroke: '#000',
+              maxSize: new go.Size(130, NaN),
+              alignment: go.Spot.TopLeft,
+              row: 0,
+            },
+            new go.Binding('text', 'text').makeTwoWay()
+          ),
+          $(
+            go.TextBlock,
+            {
+              name: 'TEXT',
+              margin: 6,
               font: '11px Lato, sans-serif',
               editable: true,
               stroke: '#000',
               maxSize: new go.Size(130, NaN),
               alignment: go.Spot.TopLeft,
+              row: 1,
             },
-            new go.Binding('text', 'text').makeTwoWay()
+            new go.Binding('text', '', KanbanUtility.textConvert).makeTwoWay()
           )
         )
       )
@@ -187,7 +206,11 @@ export class KanbanBoardTemplate {
           },
           // this is hidden when the swimlane is collapsed
           new go.Binding('visible', 'isSubGraphExpanded').ofObject(),
-          new go.Binding('text').makeTwoWay()
+          new go.Binding(
+            'text',
+            '',
+            KanbanUtility.textGroupConvert
+          ).makeTwoWay()
         )
       ), // end Horizontal Panel
       $(
@@ -287,6 +310,7 @@ export class KanbanBoardTemplate {
                 loc: '0 9999',
                 text: 'New item ' + (sel as any).memberParts.count,
                 color: 0,
+                percent: 0,
               };
               e.diagram.model.addNodeData(newdata);
               e.diagram.commitTransaction('add node');
@@ -315,7 +339,58 @@ export class KanbanBoardTemplate {
               background: '#6FB583',
             })
           ),
-          $(go.TextBlock, 'New item', {
+          $(go.TextBlock, 'New Item', {
+            font: '10px Lato, sans-serif',
+            margin: 6,
+          })
+        ), // end new item
+        $(
+          go.Panel,
+          'Horizontal',
+          {
+            row: 5,
+            click: (e, node) => {
+              e.diagram.startTransaction('add node');
+              let sel = e.diagram.selection.first();
+              if (!sel) sel = e.diagram.findTopLevelGroups().first();
+              if (!(sel instanceof go.Group))
+                sel = (sel as any).containingGroup;
+              if (!sel) return;
+              const newdata = {
+                isGroup: true,
+                loc: '0 9999',
+                text: 'New Group ',
+                color: 0,
+                percent: 0,
+              };
+              e.diagram.model.addNodeData(newdata);
+              e.diagram.commitTransaction('add node');
+              const newnode: any = myDiagram.findNodeForData(newdata);
+              e.diagram.select(newnode);
+              e.diagram.commandHandler.editTextBlock();
+              e.diagram.commandHandler.scrollToPart(newnode);
+            },
+            background: 'white',
+            margin: new go.Margin(10, 4, 4, 4),
+          },
+          $(
+            go.Panel,
+            'Auto',
+            $(go.Shape, 'Rectangle', {
+              strokeWidth: 0,
+              stroke: null,
+              fill: '#6FB583',
+            }),
+            $(go.Shape, 'PlusLine', {
+              margin: 6,
+              strokeWidth: 2,
+              width: 12,
+              height: 12,
+              stroke: 'white',
+              background: '#6FB583',
+            })
+          ),
+          $(go.TextBlock, 'New Group', {
             font: '10px Lato, sans-serif',
             margin: 6,
           })

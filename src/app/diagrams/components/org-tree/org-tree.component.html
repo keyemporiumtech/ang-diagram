@@ -1,16 +1,29 @@
 <h1>{{ title }}</h1>
 <div>
-  <div class="left" [style.width]="diagramWidth" [style.height]="diagramHeight">
-    <gojs-diagram
-      #myDiagram
-      [initDiagram]="initializeDiagram"
-      [divClassName]="diagramDivClassName"
-      [nodeDataArray]="state.diagramNodeData"
-      [linkDataArray]="state.diagramLinkData"
-      [modelData]="state.diagramModelData"
-      [skipsDiagramUpdate]="state.skipsDiagramUpdate"
-      (modelChange)="diagramModelChange($event, this)"
-    >
-    </gojs-diagram>
+  <div
+    style="
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      justify-content: space-between;
+      border: solid 1px black;
+    "
+  >
+    <div
+      class="left"
+      id="{{ divId }}"
+      [style.width]="'100%'"
+      [style.height]="'80vh'"
+    ></div>
   </div>
+
+  <ng-template #saveNode> ciao </ng-template>
+  <app-shared-modal
+    #modalShared
+    (saveModal)="saveClick($event)"
+    (updateModal)="updateClick($event)"
+    (dataDetailChange)="dataDetailChanged($event)"
+    (dataUpdateChange)="dataUpdateChanged($event)"
+    [saveTemplate]="saveNode"
+  ></app-shared-modal>
 </div>

@@ -174,4 +174,19 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
       diagram?.select(diagram.findNodeForData(model));
     });
   }
+
+  updateModelCommit(model: any, link?: any, diagram?: go.Diagram) {
+    if (!diagram) {
+      diagram = this.diagram;
+    }
+    diagram.model.commit((m: any) => {
+      const nodeModel = m.findNodeDataForKey(model.key);
+      m.assignAllDataProperties(nodeModel, model);
+      if (link) {
+        const nodeLink = m.findLinkDataForKey(link.key);
+        m.assignAllDataProperties(nodeLink, link);
+      }
+      diagram?.select(diagram.findNodeForData(model));
+    });
+  }
 }

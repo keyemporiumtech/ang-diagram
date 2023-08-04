@@ -1,37 +1,36 @@
 import * as go from 'gojs';
-import { OrgModel } from '../../model/org.model';
-import { ObjStateModel } from '../../../shared/model/obj-state.model';
-import { EnumFigureType } from '../../../shared/enum/figure-type.enum';
-import { ShapeModel } from '../../model/shape.model';
+import { OrgTreeProperties } from './properties/org-tree.properties';
+import { OrgTreePropertiesMaker } from './properties/org-tree-properties.maker';
+import { OrgTreeUtility } from './utility/org-tree.utility';
 
 export class OrgTreeTemplate {
-  static levelColors: string[] = [
-    '#AC193D',
-    '#2672EC',
-    '#8C0095',
-    '#5133AB',
-    '#008299',
-    '#D24726',
-    '#008A00',
-    '#094AB2',
-  ];
-  static shape: ShapeModel = {
-    type: EnumFigureType.RETTANGOLO,
-    background: '#333333',
-    borderColor: 'white',
-    borderSize: 3.5,
-  };
-  static textAddEmploy: string = 'Add Employee';
-  static textVacatePosition: string = 'Vacate Position';
-  static textRemoveRole: string = 'Remove Role';
-  static textRemoveDepartment: string = 'Remove Department';
+  static make(divDiagramId: string, properties?: OrgTreeProperties) {
+    OrgTreePropertiesMaker.setValues(properties);
 
-  static makeTemplate(properties?: OrgTreeProperties) {
-    OrgTreeMaker.putValues(properties);
+    const myDiagram = this.makeDiagram(divDiagramId);
 
-    const $ = go.GraphObject.make; // for conciseness in defining templates
+    myDiagram.nodeTemplate.contextMenu =
+      OrgTreeUtility.standardContextMenus(myDiagram);
 
-    const myDiagram = $(go.Diagram, {
+    // when the document is modified, add a "*" to the title and enable the "Save" button
+    myDiagram.addDiagramListener('Modified', (e) => {
+      const button: any = document.getElementById('SaveButton');
+      if (button) button.disabled = !myDiagram.isModified;
+      const idx = document.title.indexOf('*');
+      if (myDiagram.isModified) {
+        if (idx < 0) document.title += '*';
+      } else {
+        if (idx >= 0) document.title = document.title.slice(0, idx);
+      }
+    });
+
+    return myDiagram;
+  }
+
+  static makeDiagram(divId: string): go.Diagram {
+    const $ = go.GraphObject.make;
+
+    const myDiagram = new go.Diagram(divId, {
       allowCopy: false,
       allowDelete: false,
       //initialAutoScale: go.Diagram.Uniform,
@@ -70,18 +69,6 @@ export class OrgTreeTemplate {
       'undoManager.isEnabled': true, // enable undo & redo
     });
 
-    // when the document is modified, add a "*" to the title and enable the "Save" button
-    myDiagram.addDiagramListener('Modified', (e) => {
-      const button: any = document.getElementById('SaveButton');
-      if (button) button.disabled = !myDiagram.isModified;
-      const idx = document.title.indexOf('*');
-      if (myDiagram.isModified) {
-        if (idx < 0) document.title += '*';
-      } else {
-        if (idx >= 0) document.title = document.title.slice(0, idx);
-      }
-    });
-
     // override TreeLayout.commitNodes to also modify the background brush based on the tree depth level
     (myDiagram.layout as any).commitNodes = function () {
       // method override must be function, not =>
@@ -90,8 +77,8 @@ export class OrgTreeTemplate {
       // to a brush dependent on the TreeVertex.level value
       myDiagram.layout.network?.vertexes.each((v: any) => {
         if (v.node) {
-          const level = v.level % OrgTreeTemplate.levelColors.length;
-          const color = OrgTreeTemplate.levelColors[level];
+          const level = v.level % OrgTreeUtility.levelColors.length;
+          const color = OrgTreeUtility.levelColors[level];
           const shape = v.node.findObject('SHAPE');
           if (shape)
             shape.stroke = $(go.Brush, 'Linear', {
@@ -124,7 +111,7 @@ export class OrgTreeTemplate {
         mouseDragEnter: (e, node, prev) => {
           const diagram = node.diagram;
           const selnode = diagram?.selection.first();
-          if (!this.mayWorkFor(selnode, node)) return;
+          if (!OrgTreeUtility.mayWorkFor(selnode, node)) return;
           const shape = (node as any).findObject('SHAPE');
           if (shape) {
             shape._prevFill = shape.fill; // remember the original brush
@@ -140,7 +127,7 @@ export class OrgTreeTemplate {
         mouseDrop: (e, node) => {
           const diagram = node.diagram;
           const selnode = diagram?.selection.first(); // assume just one Node in selection
-          if (this.mayWorkFor(selnode, node)) {
+          if (OrgTreeUtility.mayWorkFor(selnode, node)) {
             // find any existing link into the selected node
             const link = (selnode as any).findTreeParentLink();
             if (link !== null) {
@@ -169,11 +156,11 @@ export class OrgTreeTemplate {
         'Auto',
         { name: 'BODY' },
         // define the node's outer shape
-        $(go.Shape, (this.shape as any).type, {
+        $(go.Shape, (OrgTreeUtility.shape as any).type, {
           name: 'SHAPE',
-          fill: (this.shape as any).background,
-          stroke: (this.shape as any).borderColor,
-          strokeWidth: (this.shape as any).borderSize,
+          fill: (OrgTreeUtility.shape as any).background,
+          stroke: (OrgTreeUtility.shape as any).borderColor,
+          strokeWidth: (OrgTreeUtility.shape as any).borderSize,
           portId: '',
         }),
         $(
@@ -185,9 +172,9 @@ export class OrgTreeTemplate {
               name: 'Picture',
               desiredSize: new go.Size(70, 70),
               margin: 1.5,
-              source: 'assets/images/orgTree/user.png', // the default image
+              source: OrgTreeUtility.PATH_PIC + '/user.png', // the default image
             },
-            new go.Binding('source', 'pic', this.findHeadShot)
+            new go.Binding('source', 'pic', OrgTreeUtility.findHeadShot)
           ),
           // define the panel where the text will appear
           $(
@@ -202,7 +189,7 @@ export class OrgTreeTemplate {
             $(go.RowColumnDefinition, { column: 2, width: 4 }),
             $(
               go.TextBlock,
-              this.textStyle(), // the name
+              OrgTreeUtility.textStyle(), // the name
               {
                 name: 'NAMETB',
                 row: 0,
@@ -215,30 +202,38 @@ export class OrgTreeTemplate {
               },
               new go.Binding('text', 'name').makeTwoWay()
             ),
-            $(go.TextBlock, 'Title: ', this.textStyle(), { row: 1, column: 0 }),
+            $(go.TextBlock, 'Role: ', OrgTreeUtility.textStyle(), {
+              row: 1,
+              column: 0,
+            }),
             $(
               go.TextBlock,
-              this.textStyle(),
+              OrgTreeUtility.textStyle(),
               {
                 row: 1,
-                column: 1,
-                columnSpan: 4,
+                column: 0,
+                /*
+                columnSpan: 3,
                 editable: true,
                 isMultiline: false,
                 minSize: new go.Size(50, 14),
                 margin: new go.Margin(0, 0, 0, 3),
+                */
               },
-              new go.Binding('text', 'title').makeTwoWay()
+              new go.Binding('text', 'role', (v) => 'Role: ' + v).makeTwoWay()
             ),
             $(
               go.TextBlock,
-              this.textStyle(),
+              OrgTreeUtility.textStyle(),
               { row: 2, column: 0 },
-              new go.Binding('text', 'key', (v) => 'ID: ' + v)
-            ),
+              new go.Binding('text', 'matricola', (v) =>
+                v ? 'Matricola: ' + v : ''
+              )
+            )
+            /*
             $(
               go.TextBlock,
-              this.textStyle(), // the comments
+              OrgTreeUtility.textStyle(), // the comments
               {
                 row: 3,
                 column: 0,
@@ -250,6 +245,7 @@ export class OrgTreeTemplate {
               },
               new go.Binding('text', 'comments').makeTwoWay()
             )
+            */
           ) // end Table Panel
         ) // end Horizontal Panel
       ), // end Auto Panel
@@ -260,7 +256,8 @@ export class OrgTreeTemplate {
           name: 'BUTTON',
           alignment: go.Spot.Right,
           opacity: 0, // initially not visible
-          click: (e, button) => addEmployee(button.part),
+          click: (e, button) =>
+            OrgTreeUtility.addEmployee(button.part, myDiagram),
         },
         // button is visible either when node is selected or on mouse-over
         new go.Binding('opacity', 'isSelected', (s) => (s ? 1 : 0)).ofObject()
@@ -280,33 +277,40 @@ export class OrgTreeTemplate {
       )
     ); // end Node, a Spot Panel
 
-    function addEmployee(node: any) {
-      if (!node) return;
-      const thisemp = node.data;
-      myDiagram.startTransaction('add employee');
-      const newemp = {
-        name: '(new person)',
-        title: '(title)',
-        comments: '',
-        parent: thisemp.key,
-      };
-      myDiagram.model.addNodeData(newemp);
-      const newnode: any = myDiagram.findNodeForData(newemp);
-      if (newnode) newnode.location = node.location;
-      myDiagram.commitTransaction('add employee');
-      myDiagram.commandHandler.scrollToPart(newnode);
-    }
+    // define the Link template
+    myDiagram.linkTemplate = $(
+      go.Link,
+      go.Link.Orthogonal,
+      { layerName: 'Background', corner: 5 },
+      $(go.Shape, { strokeWidth: 1.5, stroke: '#424242' }).bind(
+        'stroke',
+        'color'
+      )
+    ); // the link shape
 
+    myDiagram.model = new go.TreeModel({
+      nodeDataArray: [],
+    });
+
+    return myDiagram;
+  }
+
+  static oldContextMenu(myDiagram: go.Diagram) {
+    const $ = go.GraphObject.make;
     // the context menu allows users to make a position vacant,
     // remove a role and reassign the subtree, or remove a department
     myDiagram.nodeTemplate.contextMenu = $(
       'ContextMenu',
-      $('ContextMenuButton', $(go.TextBlock, OrgTreeTemplate.textAddEmploy), {
-        click: (e, button) => addEmployee((button.part as any).adornedPart),
+      $('ContextMenuButton', $(go.TextBlock, OrgTreeUtility.textAddEmploy), {
+        click: (e, button) =>
+          OrgTreeUtility.addEmployee(
+            (button.part as any).adornedPart,
+            myDiagram
+          ),
       }),
       $(
         'ContextMenuButton',
-        $(go.TextBlock, OrgTreeTemplate.textVacatePosition),
+        $(go.TextBlock, OrgTreeUtility.textVacatePosition),
         {
           click: (e, button) => {
             const node = (button.part as any).adornedPart;
@@ -322,7 +326,7 @@ export class OrgTreeTemplate {
           },
         }
       ),
-      $('ContextMenuButton', $(go.TextBlock, OrgTreeTemplate.textRemoveRole), {
+      $('ContextMenuButton', $(go.TextBlock, OrgTreeUtility.textRemoveRole), {
         click: (e, button) => {
           // reparent the subtree to this node's boss, then remove the node
           const node = (button.part as any).adornedPart;
@@ -345,7 +349,7 @@ export class OrgTreeTemplate {
       }),
       $(
         'ContextMenuButton',
-        $(go.TextBlock, OrgTreeTemplate.textRemoveDepartment),
+        $(go.TextBlock, OrgTreeUtility.textRemoveDepartment),
         {
           click: (e, button) => {
             // remove the whole subtree, including the node itself
@@ -359,120 +363,5 @@ export class OrgTreeTemplate {
         }
       )
     );
-
-    // define the Link template
-    myDiagram.linkTemplate = $(
-      go.Link,
-      go.Link.Orthogonal,
-      { layerName: 'Background', corner: 5 },
-      $(go.Shape, { strokeWidth: 1.5, stroke: '#424242' }).bind(
-        'stroke',
-        'color'
-      )
-    ); // the link shape
-
-    myDiagram.model = new go.TreeModel({
-      nodeDataArray: [this.sampleOrgModel(0), this.sampleOrgModel(1)],
-    });
-
-    return myDiagram;
-  }
-
-  static reloadTemplate(data: ObjStateModel, diagram: go.Diagram) {
-    diagram.model = new go.TreeModel({
-      nodeDataArray: data.diagramNodeData,
-    });
-
-    // make sure new data keys are unique positive integers
-    let lastkey = 1;
-    diagram.model.makeUniqueKeyFunction = (model, data: any) => {
-      let k = data.key || lastkey;
-      while (model.findNodeDataForKey(k)) k++;
-      data.key = lastkey = k;
-      return k;
-    };
-  }
-
-  static sampleOrgModel(key: string | number, name?: string): OrgModel {
-    const obj: OrgModel = {
-      key: key,
-      name: name ? name : 'EmptyName',
-      pic: 'user.png',
-      title: 'EmptyTitle',
-    };
-    return obj;
-  }
-
-  // ------------- UTILS ------------------
-  // this is used to determine feedback during drags
-  static mayWorkFor(node1: go.Node | any, node2: go.Node | any) {
-    if (!(node1 instanceof go.Node)) return false; // must be a Node
-    if (node1 === node2) return false; // cannot work for yourself
-    if (node2.isInTreeOf(node1)) return false; // cannot work for someone who works for you
-    return true;
-  }
-
-  // This function provides a common style for most of the TextBlocks.
-  // Some of these values may be overridden in a particular TextBlock.
-  static textStyle() {
-    return { font: '9pt  Segoe UI,sans-serif', stroke: 'white' };
-  }
-
-  // This converter is used by the Picture.
-  static findHeadShot(pic: any) {
-    if (!pic) return 'assets/images/orgTree/user.png'; // There are only 16 images on the server
-    return 'assets/images/orgTree/' + pic;
-  }
-}
-
-// ------------------ PROPERTIES
-export interface OrgTreeProperties {
-  levelColors?: string[];
-  shape?: ShapeModel;
-  textAddEmploy?: string;
-  textVacatePosition?: string;
-  textRemoveRole?: string;
-  textRemoveDepartment?: string;
-}
-
-// ------------------ MAKER
-export class OrgTreeMaker {
-  static putValues(properties?: OrgTreeProperties) {
-    if (properties) {
-      if (properties.levelColors) {
-        OrgTreeTemplate.levelColors = properties.levelColors;
-      }
-      if (properties.shape) {
-        this.putShape(properties.shape);
-      }
-      if (properties.textAddEmploy) {
-        OrgTreeTemplate.textAddEmploy = properties.textAddEmploy;
-      }
-      if (properties.textVacatePosition) {
-        OrgTreeTemplate.textVacatePosition = properties.textVacatePosition;
-      }
-      if (properties.textRemoveRole) {
-        OrgTreeTemplate.textRemoveRole = properties.textRemoveRole;
-      }
-      if (properties.textRemoveDepartment) {
-        OrgTreeTemplate.textRemoveDepartment = properties.textRemoveDepartment;
-      }
-    }
-  }
-  static putShape(shape?: ShapeModel) {
-    if (shape) {
-      if (shape.type) {
-        OrgTreeTemplate.shape.type = shape.type;
-      }
-      if (shape.background) {
-        OrgTreeTemplate.shape.background = shape.background;
-      }
-      if (shape.borderColor) {
-        OrgTreeTemplate.shape.borderColor = shape.borderColor;
-      }
-      if (shape.borderSize) {
-        OrgTreeTemplate.shape.borderSize = shape.borderSize;
-      }
-    }
   }
 }

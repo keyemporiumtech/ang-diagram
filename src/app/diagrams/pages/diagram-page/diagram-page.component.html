@@ -18,21 +18,20 @@
   >
 </div>
 
-<!--
 <app-family-tree
   *ngIf="pageModel.page === EnumDiagramPage.FAMILY_TREE"
   #cmpDiagram
-  [state]="data"
-  [title]="title"
+  [diagramModel]="objModel"
+  [diagramProperties]="objProperties"
 ></app-family-tree>
 
 <app-org-tree
   *ngIf="pageModel.page === EnumDiagramPage.ORG_TREE"
   #cmpDiagram
-  [state]="data"
-  [title]="title"
+  [diagramModel]="objModel"
+  [diagramProperties]="objProperties"
 ></app-org-tree>
--->
+
 <app-kanban-board
   *ngIf="pageModel.page === EnumDiagramPage.KANBAN_BOARD"
   #cmpDiagram

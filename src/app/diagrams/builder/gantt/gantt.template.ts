@@ -71,6 +71,7 @@ export class GanttTemplate {
     });
 
     this.makeTaskNodeTemplate(myTask, myGantt, myHighlightTask, myGrid);
+    myTask.nodeTemplate.contextMenu = GanttUtility.standardContextMenus();
 
     myGantt.addDiagramListener('ChangedSelection', (e: any) => {
       if (this.myChangingSelection) return;
@@ -102,6 +103,8 @@ export class GanttTemplate {
     });
 
     myGantt.layout = new GanttLayout(myTask);
+
+    myGantt.nodeTemplate.contextMenu = GanttUtility.standardContextMenus();
 
     const model = new go.GraphLinksModel({
       linkKeyProperty: 'key', // IMPORTANT! must be defined for merges and data sync when using GraphLinksMode
@@ -337,7 +340,7 @@ export class GanttTemplate {
         ),
         mouseOver: (e, node) => (myGantt as any).mouseOver(e),
       },
-      GanttUtility.standardContextMenus(),
+      // GanttUtility.standardContextMenus(),
       new go.Binding(
         'position',
         'start',
@@ -479,9 +482,9 @@ export class GanttTemplate {
         go.TextBlock,
         { column: 3 },
         new go.Binding('text', 'duration', (d) => d.toFixed(2))
-      ),
+      )
 
-      GanttUtility.standardContextMenus()
+      // GanttUtility.standardContextMenus()
     );
   }
 

@@ -42,6 +42,16 @@
       >Generico</a
     >
   </li>
+  <li>
+    <a
+      [routerLink]="['page']"
+      [state]="{
+      page: EnumDiagramPage.KANBAN_BOARD,
+      data: EnumKanbanBoardData.SGP_2_0,
+    }"
+      >SGP 2.0</a
+    >
+  </li>
 </ul>
 
 <h2>Gantt</h2>
