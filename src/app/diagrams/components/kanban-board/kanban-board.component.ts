@@ -3,13 +3,14 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { KanbanBoardTemplate } from '../../builder/kanban-board/kanban-board.template';
 import { KanbanModel } from '../../model/kanban.model';
+import { ObjStateModel } from '../../../shared/model/obj-state.model';
 
 @Component({
   selector: 'app-kanban-board',
   templateUrl: './kanban-board.component.html',
   styleUrls: ['./kanban-board.component.scss'],
 })
-export class KanbanBoardComponent extends DiagramBaseComponent {
+export class KanbanBoardComponent extends DiagramBaseComponent<KanbanModel> {
   // form insert
   @ViewChild('inputTitle') inputTitle: ElementRef<any>;
   @ViewChild('inputStart') inputStart: ElementRef<any>;
@@ -40,6 +41,8 @@ export class KanbanBoardComponent extends DiagramBaseComponent {
       }
     }, 1000);
   }
+
+  override afterModel(state: ObjStateModel): void {}
 
   override getModel(): go.GraphLinksModel {
     return this.defaultModel();
@@ -80,6 +83,9 @@ export class KanbanBoardComponent extends DiagramBaseComponent {
       this.inputEnd.nativeElement.value = undefined;
     }
   }
+
+  override keepDataSaveFromEvent(data: KanbanModel): void {}
+
   override saveModel(): void {
     const dataSelected: KanbanModel = this.modalShared.getDataDetail();
     const modelSave: KanbanModel = this.getModelByForm();

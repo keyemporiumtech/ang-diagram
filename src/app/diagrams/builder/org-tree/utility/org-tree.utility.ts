@@ -76,19 +76,19 @@ export class OrgTreeUtility {
           ModalUtility.openModal();
         },
       }),
-      $('ContextMenuButton', $(go.TextBlock, 'New Task'), {
-        click: (e, button) => {
-          const task = (button.part as any).adornedPart;
-
-          OrgTreeUtility.contentSave(task.data);
-          ModalUtility.openModal();
-        },
-      }),
       $('ContextMenuButton', $(go.TextBlock, 'Edit'), {
         click: (e, button) => {
           const task = (button.part as any).adornedPart;
 
           OrgTreeUtility.contentUpdate(task.data);
+          ModalUtility.openModal();
+        },
+      }),
+      $('ContextMenuButton', $(go.TextBlock, 'New Task'), {
+        click: (e, button) => {
+          const task = (button.part as any).adornedPart;
+
+          OrgTreeUtility.contentSave(task.data);
           ModalUtility.openModal();
         },
       })
@@ -97,10 +97,16 @@ export class OrgTreeUtility {
 
   static contentDetail(data: OrgModel, myDiagram: go.Diagram) {
     ModalUtility.hideSave();
-    ModalUtility.setTitle(data.name);
+    ModalUtility.hideUpdate();
 
     const parentnode: any = myDiagram.model.findNodeDataForKey(data.parent);
+    data.parentObj = parentnode;
 
+    ModalUtility.setDataDetail(data);
+    ModalUtility.setDetail();
+    ModalUtility.setTitle(data.name);
+
+    /*
     let html = '';
 
     if (data.pic) {
@@ -119,21 +125,24 @@ export class OrgTreeUtility {
     }
 
     ModalUtility.setDetail(html);
+    */
   }
 
   static contentSave(data: OrgModel) {
-    ModalUtility.setDataDetail(data);
     ModalUtility.showSave();
     ModalUtility.hideUpdate();
-    ModalUtility.setEditing();
+
+    ModalUtility.setDataSave(data);
+    ModalUtility.setSave();
     ModalUtility.setTitle('Nuovo Task');
   }
 
   static contentUpdate(data: OrgModel) {
-    ModalUtility.setDataUpdate(data);
     ModalUtility.hideSave();
     ModalUtility.showUpdate();
-    ModalUtility.setEditing();
+
+    ModalUtility.setDataUpdate(data);
+    ModalUtility.setUpdate();
     ModalUtility.setTitle('Modifica ' + data.text);
   }
 }

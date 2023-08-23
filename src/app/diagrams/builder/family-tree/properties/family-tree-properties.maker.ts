@@ -1,4 +1,4 @@
-import { FamilyTreeUtility } from '../utility/family-tree.utiliry';
+import { FamilyTreeUtility } from '../utility/family-tree.utility';
 import { FamilyTreeProperties } from './family-tree-properties';
 
 export class FamilyTreePropertiesMaker {

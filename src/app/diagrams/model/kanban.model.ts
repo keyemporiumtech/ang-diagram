@@ -10,6 +10,9 @@ export interface KanbanModel extends StateNodeModel {
   loc?: string;
   percent?: number;
   persons?: any[];
+
+  statusColor?: string;
+  statusText?: string;
 }
 
 export enum EnumKanbanStatus {

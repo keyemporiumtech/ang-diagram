@@ -159,7 +159,7 @@ export class KanbanUtility {
 
   static contentDetail(data: KanbanModel) {
     ModalUtility.hideSave();
-    ModalUtility.setTitle(data.text);
+    ModalUtility.hideUpdate();
 
     let statusColor = KanbanUtility.noteColors[0];
     let statusText: string;
@@ -183,6 +183,11 @@ export class KanbanUtility {
         break;
     }
 
+    ModalUtility.setDataDetail(data);
+    ModalUtility.setDetail();
+    ModalUtility.setTitle(data.text);
+
+    /*
     let html =
       '<strong style="display: inline-flex;">Status</strong>: ' +
       statusText +
@@ -191,21 +196,24 @@ export class KanbanUtility {
       '"></div>';
 
     ModalUtility.setDetail(html);
+    */
   }
 
   static contentSave(data: KanbanModel) {
-    ModalUtility.setDataDetail(data);
     ModalUtility.showSave();
     ModalUtility.hideUpdate();
-    ModalUtility.setEditing();
+
+    ModalUtility.setDataSave(data);
+    ModalUtility.setSave();
     ModalUtility.setTitle('Nuovo Task');
   }
 
   static contentUpdate(data: KanbanModel) {
-    ModalUtility.setDataUpdate(data);
     ModalUtility.hideSave();
     ModalUtility.showUpdate();
-    ModalUtility.setEditing();
+
+    ModalUtility.setDataUpdate(data);
+    ModalUtility.setUpdate();
     ModalUtility.setTitle('Modifica ' + data.text);
   }
 }

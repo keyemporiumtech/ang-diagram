@@ -123,8 +123,8 @@ export class GanttUtility {
   }
 
   static contentDetail(data: GanttModel) {
-    ModalUtility.hideEditing();
-    ModalUtility.setTitle(data.text);
+    ModalUtility.hideSave();
+    ModalUtility.hideUpdate();
 
     const init = new Date(GanttUtility.StartDate.getTime());
     if (data.start) {
@@ -137,6 +137,14 @@ export class GanttUtility {
       end.setDate(init.getDate() + data.duration);
     }
 
+    data.init = init;
+    data.end = end;
+
+    ModalUtility.setDataDetail(data);
+    ModalUtility.setDetail();
+    ModalUtility.setTitle(data.text);
+
+    /*
     let html = '<strong>start</strong>: ' + init.toLocaleDateString();
     if (end) {
       html += '<br/><strong>end</strong>: ' + end.toLocaleDateString();
@@ -148,21 +156,24 @@ export class GanttUtility {
         '"></div>';
     }
     ModalUtility.setDetail(html);
+    */
   }
 
   static contentSave(data: GanttModel) {
-    ModalUtility.setDataDetail(data);
     ModalUtility.showSave();
     ModalUtility.hideUpdate();
-    ModalUtility.setEditing();
+
+    ModalUtility.setDataSave(data);
+    ModalUtility.setSave();
     ModalUtility.setTitle('Nuovo Task');
   }
 
   static contentUpdate(data: GanttModel) {
-    ModalUtility.setDataUpdate(data);
     ModalUtility.hideSave();
     ModalUtility.showUpdate();
-    ModalUtility.setEditing();
+
+    ModalUtility.setDataUpdate(data);
+    ModalUtility.setUpdate();
     ModalUtility.setTitle('Modifica ' + data.text);
   }
 }

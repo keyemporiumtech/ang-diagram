@@ -7,4 +7,5 @@ export interface OrgModel extends StateNodeModel {
   role: string;
   pic: string;
   matricola?: string;
+  parentObj?: OrgModel;
 }

@@ -17,12 +17,175 @@
     ></div>
   </div>
 
-  <ng-template #saveNode> ciao </ng-template>
+  <!-- DETAIL -->
+  <ng-template #detailNode>
+    <div *ngIf="dataDetail">
+      <div *ngIf="dataDetail.father">
+        <strong>father</strong>: {{ getNameBorn(dataDetail.fatherObj) }}
+      </div>
+      <div *ngIf="dataDetail.mother">
+        <strong>mother</strong>: {{ getNameBorn(dataDetail.motherObj) }}
+      </div>
+
+      <div id="details" class="mt-2">
+        <!-- MARRIAGE -->
+        <button
+          (click)="clickSpouse(dataDetail)"
+          class="btn btn-sm btn-primary m-1"
+        >
+          Spouse
+        </button>
+        <br />
+        <ng-container *ngIf="flgSpouse">
+          <div *ngIf="spouse" class="mt-1">
+            <strong *ngIf="spouse.gender === 'M'">Husband </strong>
+            <strong *ngIf="spouse.gender === 'F'">Wife </strong>
+            {{ getNameBorn(spouse) }}
+          </div>
+          <div *ngIf="!spouse" class="mt-1">No Spouse</div>
+        </ng-container>
+        <!-- BROTHERS -->
+        <button
+          (click)="clickBrothers(dataDetail)"
+          class="btn btn-sm btn-primary m-1"
+        >
+          Brothers
+        </button>
+        <br />
+        <ng-container *ngIf="flgBrothers">
+          <div *ngFor="let brother of brothers" class="mt-1">
+            <ng-container *ngIf="brother.gender === 'M'">
+              <strong>brother</strong>: {{ getNameBorn(brother) }}
+            </ng-container>
+            <ng-container *ngIf="brother.gender === 'F'">
+              <strong>sister</strong>: {{ getNameBorn(brother) }}
+            </ng-container>
+          </div>
+          <div *ngIf="!brothers || !brothers.length" class="mt-1">
+            No brothers
+          </div>
+        </ng-container>
+        <!-- CHILDRENS -->
+        <button
+          (click)="clickChildrens(dataDetail)"
+          class="btn btn-sm btn-primary m-1"
+        >
+          Childrens
+        </button>
+        <br />
+        <ng-container *ngIf="flgChildrens">
+          <div *ngFor="let children of childrens" class="mt-1">
+            {{ getNameBorn(children) }}
+          </div>
+          <div *ngIf="!childrens || !childrens.length" class="mt-1">
+            No childrens
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- EDIT -->
+  <ng-template #saveNode>
+    <form>
+      <div>
+        <label>Name</label>
+        <input
+          #inputName
+          type="text"
+          id="nameToSave"
+          name="nameToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Sesso</label>
+        <select
+          #selectGender
+          id="genderToSave"
+          name="genderToSave"
+          [style.margin-left]="'.5rem'"
+        >
+          <option value="M">M</option>
+          <option value="F">F</option>
+        </select>
+      </div>
+      <div>
+        <label>Data di Nascita</label>
+        <input
+          #inputBirthday
+          type="date"
+          id="birthdayToSave"
+          name="birthdayToSave"
+          class="form-control"
+          (blur)="changeBirthday()"
+        />
+      </div>
+      <div>
+        <label>Data di Morte</label>
+        <input
+          #inputDeathday
+          type="date"
+          id="deathdayToSave"
+          name="deathdayToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Padre</label>
+        <select
+          #selectFather
+          id="fatherToSave"
+          name="fatherToSave"
+          [style.margin-left]="'.5rem'"
+        >
+          <option value="">---</option>
+          <ng-container *ngFor="let father of listFathers">
+            <option
+              value="{{ father.key }}"
+              [disabled]="isDisabledParent(father)"
+            >
+              {{ getNameBorn(father) }}
+            </option>
+          </ng-container>
+        </select>
+      </div>
+      <div>
+        <label>Madre</label>
+        <select
+          #selectMother
+          id="motherToSave"
+          name="motherToSave"
+          [style.margin-left]="'.5rem'"
+        >
+          <option value="">---</option>
+          <ng-container *ngFor="let mother of listMothers">
+            <option
+              value="{{ mother.key }}"
+              [disabled]="isDisabledParent(mother)"
+            >
+              {{ getNameBorn(mother) }}
+            </option>
+          </ng-container>
+        </select>
+      </div>
+    </form>
+
+    <div *ngIf="message" class="alert alert-danger" role="alert">
+      {{ message }}
+    </div>
+  </ng-template>
+
+  <!-- MODAL -->
   <app-shared-modal
     #modalShared
     (saveModal)="saveClick($event)"
+    (updateModal)="updateClick($event)"
     (dataDetailChange)="dataDetailChanged($event)"
     (dataUpdateChange)="dataUpdateChanged($event)"
+    (dataSaveChange)="dataSaveChanged($event)"
+    [detailTemplate]="detailNode"
+    [updateTemplate]="saveNode"
     [saveTemplate]="saveNode"
   ></app-shared-modal>
 </div>

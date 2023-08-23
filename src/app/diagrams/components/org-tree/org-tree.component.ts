@@ -1,20 +1,21 @@
 import * as go from 'gojs';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { OrgTreeTemplate } from '../../builder/org-tree/org-tree.template';
-import { ObjStateModel } from '../../../shared/model/obj-state.model';
-import { DiagramAngBaseComponent } from '../../abstract/diagram-ang-base.component';
 import { OrgModel } from '../../model/org.model';
+import { ObjStateModel } from '../../../shared/model/obj-state.model';
 
 @Component({
   selector: 'app-org-tree',
   templateUrl: './org-tree.component.html',
   styleUrls: ['./org-tree.component.scss'],
 })
-export class OrgTreeComponent extends DiagramBaseComponent {
+export class OrgTreeComponent extends DiagramBaseComponent<OrgModel> {
   constructor() {
     super();
   }
+
+  override afterModel(state: ObjStateModel): void {}
 
   override ngAfterViewInit(): void {
     setTimeout(() => {
@@ -30,7 +31,11 @@ export class OrgTreeComponent extends DiagramBaseComponent {
 
   override keepDataDetailFromEvent(data: OrgModel): void {}
   override keepDataUpdateFromEvent(data: OrgModel): void {}
+  override keepDataSaveFromEvent(data: OrgModel): void {}
+
   override saveModel(): void {}
   override updateModel(): void {}
-  override getModelByForm(): void {}
+  override getModelByForm(): OrgModel | undefined {
+    return undefined;
+  }
 }

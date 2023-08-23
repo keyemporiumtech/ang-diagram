@@ -1,5 +1,5 @@
 import * as go from 'gojs';
-import { FamilyTreeUtility } from './utility/family-tree.utiliry';
+import { FamilyTreeUtility } from './utility/family-tree.utility';
 import { FamilyTreePropertiesMaker } from './properties/family-tree-properties.maker';
 import { FamilyTreeProperties } from './properties/family-tree-properties';
 
@@ -10,12 +10,15 @@ export class FamilyTreeTemplate {
   ): go.Diagram {
     FamilyTreePropertiesMaker.setValues(properties);
 
-    const myTooltip = this.makeTooltip();
-    const myDiagram = this.makeDiagram(divDiagramId, myTooltip);
+    const myDiagram = this.makeDiagram(divDiagramId);
+    myDiagram.nodeTemplate.contextMenu =
+      FamilyTreeUtility.standardContextMenus(myDiagram);
+    myDiagram.nodeTemplate.toolTip = FamilyTreeUtility.makeTooltip();
+
     return myDiagram;
   }
 
-  static makeDiagram(divId: string, tooltiptemplate: any) {
+  static makeDiagram(divId: string) {
     const $ = go.GraphObject.make;
 
     const myDiagram = new go.Diagram(
@@ -74,7 +77,7 @@ export class FamilyTreeTemplate {
     myDiagram.nodeTemplate = $(
       go.Node,
       'Auto',
-      { deletable: false, toolTip: tooltiptemplate },
+      { deletable: false },
       new go.Binding('text', 'name'),
       $(
         go.Shape,
@@ -96,7 +99,7 @@ export class FamilyTreeTemplate {
           margin: 10,
           maxSize: new go.Size(80, NaN),
         },
-        new go.Binding('text', 'name')
+        new go.Binding('text', '', FamilyTreeUtility.textConvert)
       )
     );
 
@@ -119,22 +122,5 @@ export class FamilyTreeTemplate {
     });
 
     return myDiagram;
-  }
-
-  static makeTooltip(): any {
-    const $ = go.GraphObject.make;
-    return $(
-      'ToolTip',
-      { 'Border.fill': 'whitesmoke', 'Border.stroke': 'black' },
-      $(
-        go.TextBlock,
-        {
-          font: 'bold 8pt Helvetica, bold Arial, sans-serif',
-          wrap: go.TextBlock.WrapFit,
-          margin: 5,
-        },
-        new go.Binding('text', '', FamilyTreeUtility.tooltipTextConverter)
-      )
-    );
   }
 }

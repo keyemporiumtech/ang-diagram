@@ -10,9 +10,12 @@ import {
 import { ObjStateModel } from '../../shared/model/obj-state.model';
 import { ObjDiagramModel } from '../../shared/model/obj-diagram.model';
 import { SharedModalComponent } from '../components/shared-modal/shared-modal.component';
+import { StateNodeModel } from '../../shared/model/state-node.model';
 
 @Directive()
-export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
+export abstract class DiagramBaseComponent<T extends StateNodeModel>
+  implements OnInit, AfterViewInit
+{
   // --------------- MANAGE DIAGRAM
   private _diagramModel: ObjDiagramModel;
   @Input() set diagramModel(val: ObjDiagramModel) {
@@ -30,9 +33,14 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
   diagram: go.Diagram;
 
   // ------------------- MANAGE MODAL BUTTONS
+  typeOperation: 'DETAIL' | 'UPDATE' | 'SAVE' | 'NONE' = 'NONE';
   @ViewChild('modalShared') modalShared: SharedModalComponent;
-  dataDetailFromEvent: any;
-  dataUpdateFromEvent: any;
+  dataDetailFromEvent: T;
+  dataUpdateFromEvent: T;
+  dataSaveFromEvent: T;
+  dataDetail: T;
+  dataUpdate: T;
+  dataSave: T;
 
   ngAfterViewInit(): void {}
   ngOnInit(): void {}
@@ -42,9 +50,14 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
       this.state = diagramModel.state;
       this.title = diagramModel.title;
       this.divId = diagramModel.divId;
+      this.afterModel(this.state);
     }
   }
 
+  /**
+   * Operazioni da fare appena viene acquisito il modello
+   */
+  abstract afterModel(state: ObjStateModel): void;
   /**
    * Torna il modello con i nodeDataArray e i nodeLinkArray di input
    * go.GraphLinksModel or go.TreeModel
@@ -52,16 +65,22 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
   abstract getModel(): any;
   /**
    * chiamata che intercetta il dato sul nodo di template cliccato
-   * per il dettaglio e il salvataggio in modale (MODALE)
+   * per il dettaglio (MODALE)
    * @param data Oggetto del nodo cliccato
    */
-  abstract keepDataDetailFromEvent(data: any): void;
+  abstract keepDataDetailFromEvent(data: T): void;
   /**
    * chiamata che intercetta il dato sul nodo di template cliccato
    * per l'update (MODALE)
    * @param data Oggetto del nodo cliccato
    */
-  abstract keepDataUpdateFromEvent(data: any): void;
+  abstract keepDataUpdateFromEvent(data: T): void;
+  /**
+   * chiamata che intercetta il dato sul nodo di template cliccato
+   * per il salva (MODALE)
+   * @param data Oggetto del nodo cliccato
+   */
+  abstract keepDataSaveFromEvent(data: T): void;
   /**
    * chiamato al click del salvataggio
    */
@@ -74,15 +93,25 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
    * Ritorna il modello del nodo preso dal form interno del template passato a sharedModel
    * da usare nei metodi saveModel() e updateModel()
    */
-  abstract getModelByForm(): any;
+  abstract getModelByForm(): T | undefined;
 
-  dataDetailChanged(data: any) {
+  dataDetailChanged(data: T) {
     this.dataDetailFromEvent = data;
-    this.keepDataDetailFromEvent(data);
+    this.dataDetail = this.getDataModel(this.dataDetailFromEvent);
+    this.typeOperation = 'DETAIL';
+    this.keepDataDetailFromEvent(this.dataDetail);
   }
-  dataUpdateChanged(data: any) {
+  dataUpdateChanged(data: T) {
     this.dataUpdateFromEvent = data;
-    this.keepDataUpdateFromEvent(data);
+    this.dataUpdate = this.getDataModel(this.dataUpdateFromEvent);
+    this.typeOperation = 'UPDATE';
+    this.keepDataUpdateFromEvent(this.dataUpdate);
+  }
+  dataSaveChanged(data: T) {
+    this.dataSaveFromEvent = data;
+    this.dataSave = this.getDataModel(this.dataSaveFromEvent);
+    this.typeOperation = 'SAVE';
+    this.keepDataSaveFromEvent(this.dataSave);
   }
   saveClick($event: any) {
     if (this.modalShared) {
@@ -188,5 +217,20 @@ export abstract class DiagramBaseComponent implements OnInit, AfterViewInit {
       }
       diagram?.select(diagram.findNodeForData(model));
     });
+  }
+
+  // -------------- UTILS
+  private getDataModel(dataFromEvent: T): any {
+    if (
+      dataFromEvent &&
+      this.diagramModel &&
+      this.diagramModel.state &&
+      this.diagramModel.state.diagramNodeData
+    ) {
+      return this.diagramModel.state.diagramNodeData.find(
+        (el) => el.key === dataFromEvent.key
+      );
+    }
+    return undefined;
   }
 }

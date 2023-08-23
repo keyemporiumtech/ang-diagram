@@ -10,6 +10,7 @@ import { DiagramBaseComponent } from '../../abstract/diagram-base.component';
 import { GanttTemplate } from '../../builder/gantt/gantt.template';
 import { GanttUtility } from '../../builder/gantt/utility/gantt.utility';
 import { GanttModel } from '../../model/gantt.model';
+import { ObjStateModel } from '../../../shared/model/obj-state.model';
 
 @Component({
   selector: 'app-gantt',
@@ -17,7 +18,7 @@ import { GanttModel } from '../../model/gantt.model';
   styleUrls: ['./gantt.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class GanttComponent extends DiagramBaseComponent {
+export class GanttComponent extends DiagramBaseComponent<GanttModel> {
   @Input() preferredColors: string[];
   enableSelectColors: boolean;
   template: any;
@@ -56,6 +57,8 @@ export class GanttComponent extends DiagramBaseComponent {
     }, 1000);
   }
 
+  override afterModel(state: ObjStateModel): void {}
+
   override getModel(): go.GraphLinksModel {
     return this.defaultModel();
   }
@@ -93,6 +96,8 @@ export class GanttComponent extends DiagramBaseComponent {
       this.inputColor.nativeElement.value = data.color;
     }
   }
+
+  override keepDataSaveFromEvent(data: GanttModel): void {}
 
   override saveModel() {
     // console.log(this.modalShared.getData());

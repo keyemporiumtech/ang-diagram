@@ -6,4 +6,6 @@ export interface GanttModel extends StateNodeModel {
   color?: string; // preferr to use hexa not name as yellow
   start?: number;
   duration?: number;
+  init?: Date;
+  end?: Date;
 }

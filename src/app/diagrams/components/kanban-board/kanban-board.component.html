@@ -96,6 +96,9 @@
     (updateModal)="updateClick($event)"
     (dataDetailChange)="dataDetailChanged($event)"
     (dataUpdateChange)="dataUpdateChanged($event)"
+    (dataSaveChange)="dataSaveChanged($event)"
+    [detailTemplate]="saveNode"
+    [updateTemplate]="saveNode"
     [saveTemplate]="saveNode"
   ></app-shared-modal>
 </div>

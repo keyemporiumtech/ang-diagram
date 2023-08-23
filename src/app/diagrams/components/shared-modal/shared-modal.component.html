@@ -26,6 +26,14 @@
   (change)="changeDataUpdate($event)"
 />
 
+<input
+  #dataSaveFromEvent
+  id="dataSaveFromEvent"
+  name="dataSaveFromEvent"
+  hidden="true"
+  (change)="changeDataSave($event)"
+/>
+
 <!-- Modal -->
 <div
   class="modal fade"
@@ -45,10 +53,15 @@
           aria-label="Close"
         ></button>
       </div>
+      <div class="modal-body" id="myModalContentUpdate">
+        <ng-container [ngTemplateOutlet]="updateTemplate"></ng-container>
+      </div>
+      <div class="modal-body" id="myModalContentDetail">
+        <ng-container [ngTemplateOutlet]="detailTemplate"></ng-container>
+      </div>
       <div class="modal-body" id="myModalContentSave">
         <ng-container [ngTemplateOutlet]="saveTemplate"></ng-container>
       </div>
-      <div class="modal-body" id="myModalContentDetail">...</div>
       <div class="modal-footer">
         <button
           type="button"

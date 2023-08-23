@@ -47,7 +47,7 @@ export class DiagramPageComponent implements OnInit, AfterViewInit {
   currentPage: EnumDiagramPage;
 
   EnumDiagramPage = EnumDiagramPage;
-  @ViewChild('cmpDiagram') cmpDiagram: DiagramBaseComponent;
+  @ViewChild('cmpDiagram') cmpDiagram: DiagramBaseComponent<any>;
   @ViewChild('textJson') textJson: ElementRef;
 
   constructor(private location: Location) {
