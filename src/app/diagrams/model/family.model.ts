@@ -11,4 +11,5 @@ export interface FamilyModel extends StateNodeModel {
   // others
   fatherObj?: FamilyModel;
   motherObj?: FamilyModel;
+  genderSave?: 'M' | 'F';
 }

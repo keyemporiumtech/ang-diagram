@@ -33,12 +33,18 @@ export class OrgTreeUtility {
     const thisemp = node.data;
     myDiagram.startTransaction('add employee');
     const newemp = {
+      key: Math.random(),
       name: '(new person)',
       title: '(title)',
       comments: '',
       parent: thisemp.key,
     };
     myDiagram.model.addNodeData(newemp);
+    (myDiagram.model as go.GraphLinksModel).addLinkData({
+      key: Math.random(),
+      from: thisemp.key,
+      to: newemp.key,
+    });
     const newnode: any = myDiagram.findNodeForData(newemp);
     if (newnode) newnode.location = node.location;
     myDiagram.commitTransaction('add employee');
@@ -69,14 +75,14 @@ export class OrgTreeUtility {
     const $ = go.GraphObject.make;
     return $(
       'ContextMenu',
-      $('ContextMenuButton', $(go.TextBlock, 'Details...'), {
+      $('ContextMenuButton', $(go.TextBlock, 'Dettaglio'), {
         click: (e, button) => {
           const task = (button.part as any).adornedPart;
           OrgTreeUtility.contentDetail(task.data, myDiagram);
           ModalUtility.openModal();
         },
       }),
-      $('ContextMenuButton', $(go.TextBlock, 'Edit'), {
+      $('ContextMenuButton', $(go.TextBlock, 'Modifica'), {
         click: (e, button) => {
           const task = (button.part as any).adornedPart;
 
@@ -84,7 +90,7 @@ export class OrgTreeUtility {
           ModalUtility.openModal();
         },
       }),
-      $('ContextMenuButton', $(go.TextBlock, 'New Task'), {
+      $('ContextMenuButton', $(go.TextBlock, 'Aggiungi dipendente'), {
         click: (e, button) => {
           const task = (button.part as any).adornedPart;
 
@@ -133,8 +139,9 @@ export class OrgTreeUtility {
     ModalUtility.hideUpdate();
 
     ModalUtility.setDataSave(data);
-    ModalUtility.setSave();
-    ModalUtility.setTitle('Nuovo Task');
+    // ModalUtility.setSave();
+    ModalUtility.setUpdate();
+    ModalUtility.setTitle('Nuovo Dipendente');
   }
 
   static contentUpdate(data: OrgModel) {
@@ -143,6 +150,6 @@ export class OrgTreeUtility {
 
     ModalUtility.setDataUpdate(data);
     ModalUtility.setUpdate();
-    ModalUtility.setTitle('Modifica ' + data.text);
+    ModalUtility.setTitle('Modifica ' + data.name);
   }
 }

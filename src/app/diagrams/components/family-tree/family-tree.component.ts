@@ -13,7 +13,6 @@ import { ObjStateModel } from '../../../shared/model/obj-state.model';
   styleUrls: ['./family-tree.component.scss'],
 })
 export class FamilyTreeComponent extends DiagramBaseComponent<FamilyModel> {
-  message: string | undefined;
   brothers: FamilyModel[] = [];
   flgBrothers: boolean;
   childrens: FamilyModel[] = [];
@@ -83,21 +82,90 @@ export class FamilyTreeComponent extends DiagramBaseComponent<FamilyModel> {
       this.selectMother.nativeElement.value = data.mother;
     }
   }
-  override keepDataSaveFromEvent(data: FamilyModel): void {}
-  override saveModel(): void {
-    this.checkMessage();
-    if (!this.message) {
+  override keepDataSaveFromEvent(data: FamilyModel): void {
+    let chooseFather: boolean = false;
+    let chooseMother: boolean = false;
+    if (
+      data &&
+      data.key &&
+      data.gender &&
+      data.gender === 'M' &&
+      this.selectFather
+    ) {
+      this.selectFather.nativeElement.value = data.key;
+      chooseFather = true;
+      const spouse = FamilyTreeUtility.searchSpouse(
+        data,
+        this.diagramModel.state.diagramNodeData as any
+      );
+      if (spouse) {
+        this.selectMother.nativeElement.value = spouse.key;
+        chooseMother = true;
+      }
+    } else if (!chooseFather) {
+      this.selectFather.nativeElement.value = '';
+    }
+
+    if (
+      data &&
+      data.key &&
+      data.gender &&
+      data.gender === 'F' &&
+      this.selectMother
+    ) {
+      this.selectMother.nativeElement.value = data.key;
+      chooseMother = true;
+      const spouse = FamilyTreeUtility.searchSpouse(
+        data,
+        this.diagramModel.state.diagramNodeData as any
+      );
+      if (spouse) {
+        this.selectFather.nativeElement.value = spouse.key;
+        chooseFather = true;
+      }
+    } else if (!chooseMother) {
+      this.selectMother.nativeElement.value = '';
+    }
+
+    this.inputName.nativeElement.value = '';
+    this.inputBirthday.nativeElement.value = '';
+    this.inputDeathday.nativeElement.value = '';
+    this.selectGender.nativeElement.value = data.genderSave;
+  }
+  override validateForm(): void {
+    if (
+      !this.selectFather.nativeElement.value &&
+      !this.selectMother.nativeElement.value
+    ) {
+      this.setMessage(
+        'Non è possibile salvare un componente senza inserire almeno un genitore'
+      );
+    }
+
+    if (!this.inputBirthday.nativeElement.value) {
+      this.setMessage('La data di nascita è obbligatoria');
+    }
+
+    if (!this.inputName.nativeElement.value) {
+      this.setMessage('Il nome è obbligatorio');
     }
   }
+  override saveModel(): void {
+    const modelSave: FamilyModel = this.getModelByForm();
+    modelSave.key = this.extractKey(modelSave);
+    const linkSave = {
+      key: modelSave.key + '_' + modelSave.father,
+      from: modelSave.father,
+      to: modelSave.key,
+    };
+    this.saveModelCommit(modelSave, linkSave);
+  }
   override updateModel(): void {
-    this.checkMessage();
-    if (!this.message) {
-      const modelSave: FamilyModel = this.getModelByForm();
-      modelSave.key = this.dataUpdateFromEvent.key;
-      this.updateAllLink(modelSave);
-      modelSave.key = this.dataUpdateFromEvent.key;
-      this.updateModelCommit(modelSave);
-    }
+    const modelSave: FamilyModel = this.getModelByForm();
+    modelSave.key = this.dataUpdateFromEvent.key;
+    this.updateAllLink(modelSave);
+    modelSave.key = this.dataUpdateFromEvent.key;
+    this.updateModelCommit(modelSave);
   }
   override getModelByForm(): FamilyModel {
     return {
@@ -116,19 +184,12 @@ export class FamilyTreeComponent extends DiagramBaseComponent<FamilyModel> {
   }
 
   // ------------- FORM
-  checkMessage(): void {
-    this.message = undefined;
-    if (
-      !this.selectFather.nativeElement.value &&
-      !this.selectMother.nativeElement.value
-    ) {
-      this.message =
-        'Non è possibile salvare un componente senza inserire almeno un genitore';
-    }
-  }
+
   isDisabledParent(parent: FamilyModel) {
     if (this.typeOperation === 'UPDATE') {
-      const dataScelta = new Date(this.inputBirthday.nativeElement.value);
+      const dataScelta = this.inputBirthday.nativeElement.value
+        ? new Date(this.inputBirthday.nativeElement.value)
+        : undefined;
       const cond1 =
         this.dataUpdateFromEvent && this.dataUpdateFromEvent.key === parent.key;
       const cond2 =
@@ -137,7 +198,9 @@ export class FamilyTreeComponent extends DiagramBaseComponent<FamilyModel> {
         dataScelta.getFullYear() <= parent.birthDate.getFullYear();
       return cond1 || cond2;
     } else if (this.typeOperation === 'SAVE') {
-      const dataScelta = new Date(this.inputBirthday.nativeElement.value);
+      const dataScelta = this.inputBirthday.nativeElement.value
+        ? new Date(this.inputBirthday.nativeElement.value)
+        : undefined;
       return (
         dataScelta &&
         dataScelta.getFullYear() <= (parent.birthDate as any).getFullYear()
@@ -285,5 +348,22 @@ export class FamilyTreeComponent extends DiagramBaseComponent<FamilyModel> {
     if (day.length < 2) day = '0' + day;
 
     return [year, month, day].join('-');
+  }
+
+  private extractKey(person: FamilyModel): string {
+    const year: string =
+      person && person.birthDate ? '' + person.birthDate.getFullYear() : '';
+    let yearKey: string | undefined;
+    if (year && year.length === 4) {
+      yearKey = year.substring(2, 4);
+    }
+
+    const names: string[] = person && person.name ? person.name.split(' ') : [];
+    let namesKey: string | undefined;
+    if (names && names.length) {
+      namesKey = names.join('');
+    }
+
+    return yearKey && namesKey ? namesKey + yearKey : '' + Math.random();
   }
 }

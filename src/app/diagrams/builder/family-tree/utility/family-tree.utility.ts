@@ -56,14 +56,14 @@ export class FamilyTreeUtility {
     const $ = go.GraphObject.make;
     return $(
       'ContextMenu',
-      $('ContextMenuButton', $(go.TextBlock, 'Detail'), {
+      $('ContextMenuButton', $(go.TextBlock, 'Dettaglio'), {
         click: (e, button) => {
           const task = (button.part as any).adornedPart;
           FamilyTreeUtility.contentDetail(task.data, myDiagram);
           ModalUtility.openModal();
         },
       }),
-      $('ContextMenuButton', $(go.TextBlock, 'Edit'), {
+      $('ContextMenuButton', $(go.TextBlock, 'Modifica'), {
         click: (e, button) => {
           const task = (button.part as any).adornedPart;
 
@@ -71,11 +71,19 @@ export class FamilyTreeUtility {
           ModalUtility.openModal();
         },
       }),
-      $('ContextMenuButton', $(go.TextBlock, 'New Task'), {
+      $('ContextMenuButton', $(go.TextBlock, 'Aggiungi figlio'), {
         click: (e, button) => {
           const task = (button.part as any).adornedPart;
 
-          FamilyTreeUtility.contentSave(task.data);
+          FamilyTreeUtility.contentSave(task.data, 'M');
+          ModalUtility.openModal();
+        },
+      }),
+      $('ContextMenuButton', $(go.TextBlock, 'Aggiungi figlia'), {
+        click: (e, button) => {
+          const task = (button.part as any).adornedPart;
+
+          FamilyTreeUtility.contentSave(task.data, 'F');
           ModalUtility.openModal();
         },
       })
@@ -100,13 +108,15 @@ export class FamilyTreeUtility {
     ModalUtility.setTitle(this.getNameBorn(data));
   }
 
-  static contentSave(data: FamilyModel) {
+  static contentSave(data: FamilyModel, gender: 'M' | 'F') {
     ModalUtility.showSave();
     ModalUtility.hideUpdate();
 
+    data.genderSave = gender;
     ModalUtility.setDataSave(data);
-    ModalUtility.setSave();
-    ModalUtility.setTitle('Nuovo Task');
+    // ModalUtility.setSave();
+    ModalUtility.setUpdate(); // IF SAME TEMPLATE
+    ModalUtility.setTitle('Nuova Persona');
   }
 
   static contentUpdate(data: FamilyModel) {

@@ -26,6 +26,10 @@ export class SharedModalComponent implements AfterViewInit {
   @Output() dataDetailChange: EventEmitter<any> = new EventEmitter<any>();
   @Output() dataUpdateChange: EventEmitter<any> = new EventEmitter<any>();
   @Output() dataSaveChange: EventEmitter<any> = new EventEmitter<any>();
+  // vars
+  typeOperation: 'DETAIL' | 'UPDATE' | 'SAVE' | 'NONE' = 'NONE';
+  // ------------------- MANAGE VALIDATIONS
+  messages: string[] = [];
 
   constructor() {}
 
@@ -49,6 +53,8 @@ export class SharedModalComponent implements AfterViewInit {
     }
   }
   changeDataDetail($event: any) {
+    this.emptyMessages();
+    this.typeOperation = 'DETAIL';
     this.dataDetailChange.emit(this.getDataDetail());
   }
 
@@ -62,6 +68,8 @@ export class SharedModalComponent implements AfterViewInit {
     }
   }
   changeDataUpdate($event: any) {
+    this.emptyMessages();
+    this.typeOperation = 'UPDATE';
     this.dataUpdateChange.emit(this.getDataUpdate());
   }
 
@@ -72,7 +80,24 @@ export class SharedModalComponent implements AfterViewInit {
     }
   }
   changeDataSave($event: any) {
+    this.emptyMessages();
+    this.typeOperation = 'SAVE';
     this.dataSaveChange.emit(this.getDataSave());
+  }
+
+  // ----------- MESSAGES
+  setMessage(message: string): void {
+    this.messages.push(message);
+  }
+  setMessages(messages: string[]): void {
+    this.messages.push(...messages);
+  }
+  emptyMessages() {
+    this.messages.length = 0;
+  }
+
+  hasMessage(): boolean {
+    return this.messages.length > 0;
   }
 
   ngOnDestroy() {}

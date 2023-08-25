@@ -220,7 +220,7 @@ export class OrgTreeTemplate {
                 margin: new go.Margin(0, 0, 0, 3),
                 */
               },
-              new go.Binding('text', 'role', (v) => 'Role: ' + v).makeTwoWay()
+              new go.Binding('text', 'role', (v) => 'Ruolo: ' + v).makeTwoWay()
             ),
             $(
               go.TextBlock,

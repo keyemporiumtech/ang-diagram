@@ -99,6 +99,8 @@ export class GanttComponent extends DiagramBaseComponent<GanttModel> {
 
   override keepDataSaveFromEvent(data: GanttModel): void {}
 
+  override validateForm(): void {}
+
   override saveModel() {
     // console.log(this.modalShared.getData());
     const dataSelected: GanttModel = this.modalShared.getDataDetail();

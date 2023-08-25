@@ -53,14 +53,16 @@
           aria-label="Close"
         ></button>
       </div>
-      <div class="modal-body" id="myModalContentUpdate">
-        <ng-container [ngTemplateOutlet]="updateTemplate"></ng-container>
-      </div>
       <div class="modal-body" id="myModalContentDetail">
         <ng-container [ngTemplateOutlet]="detailTemplate"></ng-container>
       </div>
+      <div class="modal-body" id="myModalContentUpdate">
+        <ng-container [ngTemplateOutlet]="updateTemplate"></ng-container>
+        <ng-container *ngTemplateOutlet="messagesBlock"></ng-container>
+      </div>
       <div class="modal-body" id="myModalContentSave">
         <ng-container [ngTemplateOutlet]="saveTemplate"></ng-container>
+        <ng-container *ngTemplateOutlet="messagesBlock"></ng-container>
       </div>
       <div class="modal-footer">
         <button
@@ -91,3 +93,11 @@
     </div>
   </div>
 </div>
+
+<ng-template #messagesBlock>
+  <div *ngIf="hasMessage()" class="alert alert-danger mt-2" role="alert">
+    <div *ngFor="let message of messages">
+      {{ message }}
+    </div>
+  </div>
+</ng-template>

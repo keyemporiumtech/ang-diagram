@@ -55,7 +55,9 @@ export abstract class DiagramBaseComponent<T extends StateNodeModel>
   }
 
   /**
-   * Operazioni da fare appena viene acquisito il modello
+   * Operazioni da fare appena viene acquisito il modello.
+   * In questo metodo è possibile modificare e arricchire i dati e i link di input
+   * anche senza ridisegnare il grafo
    */
   abstract afterModel(state: ObjStateModel): void;
   /**
@@ -66,19 +68,19 @@ export abstract class DiagramBaseComponent<T extends StateNodeModel>
   /**
    * chiamata che intercetta il dato sul nodo di template cliccato
    * per il dettaglio (MODALE)
-   * @param data Oggetto del nodo cliccato
+   * @param data Oggetto del nodo cliccato arricchito da afterModel
    */
   abstract keepDataDetailFromEvent(data: T): void;
   /**
    * chiamata che intercetta il dato sul nodo di template cliccato
    * per l'update (MODALE)
-   * @param data Oggetto del nodo cliccato
+   * @param data Oggetto del nodo cliccato arricchito da afterModel
    */
   abstract keepDataUpdateFromEvent(data: T): void;
   /**
    * chiamata che intercetta il dato sul nodo di template cliccato
    * per il salva (MODALE)
-   * @param data Oggetto del nodo cliccato
+   * @param data Oggetto del nodo cliccato arricchito da afterModel
    */
   abstract keepDataSaveFromEvent(data: T): void;
   /**
@@ -94,6 +96,11 @@ export abstract class DiagramBaseComponent<T extends StateNodeModel>
    * da usare nei metodi saveModel() e updateModel()
    */
   abstract getModelByForm(): T | undefined;
+
+  /**
+   * Metodo che aggiunge messaggi di validazioni e può sfruttare il setMessage()
+   */
+  abstract validateForm(): void;
 
   dataDetailChanged(data: T) {
     this.dataDetailFromEvent = data;
@@ -115,13 +122,45 @@ export abstract class DiagramBaseComponent<T extends StateNodeModel>
   }
   saveClick($event: any) {
     if (this.modalShared) {
-      this.saveModel();
+      this.checkMessage();
+      if (!this.hasMessage()) {
+        this.saveModel();
+      }
     }
   }
   updateClick($event: any) {
     if (this.modalShared) {
-      this.updateModel();
+      this.checkMessage();
+      if (!this.hasMessage()) {
+        this.updateModel();
+      }
     }
+  }
+
+  // -------------- manage validations
+  checkMessage(): void {
+    this.emptyMessages();
+    this.validateForm();
+  }
+
+  setMessage(message: string): void {
+    if (this.modalShared) {
+      this.modalShared.setMessage(message);
+    }
+  }
+  setMessages(messages: string[]): void {
+    if (this.modalShared) {
+      this.modalShared.setMessages(messages);
+    }
+  }
+  emptyMessages() {
+    if (this.modalShared) {
+      this.modalShared.emptyMessages();
+    }
+  }
+
+  hasMessage(): boolean {
+    return this.modalShared ? this.modalShared.hasMessage() : false;
   }
 
   // -------------- manage json

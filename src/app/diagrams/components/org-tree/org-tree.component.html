@@ -17,7 +17,112 @@
     ></div>
   </div>
 
-  <ng-template #saveNode> ciao </ng-template>
+  <!-- DETAIL -->
+  <ng-template #detailNode>
+    <div *ngIf="dataDetail">
+      <strong>Nome</strong>: {{ dataDetail.name }}<br />
+      <strong>Matricola</strong>: {{ dataDetail.matricola }}<br />
+      <strong>Ruolo</strong>: {{ dataDetail.role }}<br />
+      <div *ngIf="dataDetail.parent">
+        <strong>Parent</strong>:
+        {{
+          dataDetail.parentObj?.name + " (" + dataDetail.parentObj?.role + ")"
+        }}
+      </div>
+      <hr />
+      <strong>Skills</strong>:<br />
+      <ng-container *ngFor="let skill of skills">
+        <div>
+          {{ skill }}
+        </div>
+      </ng-container>
+    </div>
+  </ng-template>
+
+  <!-- EDIT -->
+  <ng-template #saveNode>
+    <form>
+      <div>
+        <label>Nome</label>
+        <input
+          #inputName
+          type="text"
+          id="nameToSave"
+          name="nameToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Matricola</label>
+        <input
+          #inputMatricola
+          type="text"
+          id="matricolaToSave"
+          name="matricolaToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Ruolo</label>
+        <input
+          #inputRole
+          type="text"
+          id="roleToSave"
+          name="roleToSave"
+          class="form-control"
+        />
+      </div>
+      <div>
+        <label>Superiore</label>
+        <select
+          #selectParent
+          id="parentToSave"
+          name="parentToSave"
+          [style.margin-left]="'.5rem'"
+        >
+          <option value="">---</option>
+          <ng-container *ngFor="let parent of listParents">
+            <option
+              value="{{ parent.key }}"
+              [disabled]="isDisabledParent(parent)"
+            >
+              {{ parent.name + " (" + parent.role + ")" }}
+            </option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="mt-2">
+        <label>Aggiungi Skill</label>
+        <div class="row">
+          <div class="col col-9">
+            <input
+              #inputSkill
+              type="text"
+              id="skillToSave"
+              name="skillToSave"
+              class="form-control"
+            />
+          </div>
+          <div class="col col-2">
+            <button (click)="addSkill()" class="ml-1">
+              <span class="fa fa-plus"></span>
+            </button>
+          </div>
+        </div>
+
+        <hr />
+        <ng-container *ngFor="let skill of skills">
+          <div class="mt-1">
+            {{ skill }}
+            <button (click)="removeSkill(skill)" class="ml-1">
+              <span class="fa fa-trash"></span>
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </form>
+  </ng-template>
+
   <app-shared-modal
     #modalShared
     (saveModal)="saveClick($event)"
@@ -25,7 +130,7 @@
     (dataDetailChange)="dataDetailChanged($event)"
     (dataUpdateChange)="dataUpdateChanged($event)"
     (dataSaveChange)="dataSaveChanged($event)"
-    [detailTemplate]="saveNode"
+    [detailTemplate]="detailNode"
     [updateTemplate]="saveNode"
     [saveTemplate]="saveNode"
   ></app-shared-modal>

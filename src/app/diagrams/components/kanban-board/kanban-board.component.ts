@@ -86,6 +86,8 @@ export class KanbanBoardComponent extends DiagramBaseComponent<KanbanModel> {
 
   override keepDataSaveFromEvent(data: KanbanModel): void {}
 
+  override validateForm(): void {}
+
   override saveModel(): void {
     const dataSelected: KanbanModel = this.modalShared.getDataDetail();
     const modelSave: KanbanModel = this.getModelByForm();
